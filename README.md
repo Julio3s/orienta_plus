@@ -10,7 +10,7 @@
 | Backend     | Django 4.2 + DRF + SimpleJWT                 |
 | Base de données | PostgreSQL                                |
 | Frontend    | React 18 + Vite + Tailwind CSS               |
-| IA          | OpenAI GPT-4o mini (chatbot conseiller)       |
+| IA          | Xai (chatbot conseiller)       |
 | Fonts       | Syne (display) + Plus Jakarta Sans (body)     |
 
 ---
@@ -80,7 +80,7 @@ orienta_plus/
 ### 2. Base de données PostgreSQL
 ```sql
 CREATE DATABASE orienta_db;
-CREATE USER orienta_user WITH PASSWORD 'orienta_pass_change_me';
+CREATE USER orienta_user WITH PASSWORD '';
 GRANT ALL PRIVILEGES ON DATABASE orienta_db TO orienta_user;
 ```
 
@@ -97,7 +97,7 @@ pip install -r requirements.txt
 
 # Configurer les variables d'environnement
 cp .env.example .env
-# Éditer .env et renseigner DB_PASSWORD, OPENAI_API_KEY, etc.
+# Éditer .env et renseigner DB_PASSWORD, XAI_API_KEY, etc.
 
 # Migrations
 python manage.py makemigrations
@@ -116,11 +116,11 @@ python manage.py runserver
 python scripts/insert_example_data.py
 ```
 Cela insère automatiquement :
-- 10 séries de bac (A1, B, C, D, E, F1, F2, F3, G1, G2)
-- 20 matières avec coefficients
-- 13 universités béninoises (UAC, UNSTIM, EPAC, FSS, ENEAM, UP, UATM, UCAO, etc.)
+- 22 séries de bac (A1, B, C, D, E, F1, F2, F3, G1, G2...)
+- 26 matières avec coefficients
+- 103 universités béninoises (UAC, UNSTIM, EPAC, FSS, ENEAM, UP, UATM, UCAO, etc.)
 - 13 filières avec débouchés et salaires
-- ~25 seuils d'admission configurés
+- ~22 seuils d'admission configurés
 
 ### 5. Frontend React
 ```bash
@@ -137,22 +137,6 @@ npm run dev
 ```
 
 ---
-
-## 🔑 Intégration OpenAI
-
-1. Créer un compte sur https://platform.openai.com
-2. Générer une clé API (commence par `sk-`)
-3. Dans `backend/.env`, remplacer :
-   ```
-   OPENAI_API_KEY=sk-votre-clé-ici
-   ```
-4. Redémarrer le serveur Django
-
-Le chatbot utilise **GPT-4o mini** (~0.001$/1k tokens) — très économique.
-Sans clé API, un message de fallback s'affiche.
-
----
-
 ## 🔐 Espace Admin
 
 L'espace admin est **complètement séparé** de la plateforme publique :
@@ -166,21 +150,6 @@ L'espace admin est **complètement séparé** de la plateforme publique :
 ### Connexion admin
 - Utiliser les identifiants créés avec `python manage.py createsuperuser`
 - Token JWT valable 8h, refresh 7 jours
-
----
-
-## 🎬 Animation d'accueil (8 secondes)
-
-| Temps | Action |
-|---|---|
-| 0-2s | Personnage court de gauche à droite |
-| 2-3s | Saute par-dessus le bac (livre violet) |
-| 3-4s | Marche vers et appuie sur le bouton O+ |
-| 4-6s | Explosion BOOM! + apparition du mot ORIENTA |
-| 6-7s | Personnage ressort et s'assoit à côté |
-| 7-8s | Logo final ORIENTA+ avec tagline |
-
-Cliquer sur l'animation pour la passer.
 
 ---
 
@@ -207,7 +176,7 @@ SECRET_KEY=...
 DEBUG=False
 ALLOWED_HOSTS=votre-domaine.railway.app
 DATABASE_URL=postgresql://...  # Fourni automatiquement par Railway
-OPENAI_API_KEY=sk-...
+XAI KEY =sk-...
 CORS_ALLOWED_ORIGINS=https://votre-frontend.vercel.app
 ```
 
@@ -228,4 +197,3 @@ npm run build
 
 ---
 
-*ORIENTA+ — Fait avec ❤️ pour les bacheliers du Bénin*
