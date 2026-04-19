@@ -1,25 +1,67 @@
 #!/usr/bin/env python
 import os
-from openai import OpenAI
+import sys
 
-# Ta clé API (à régénérer car elle a été exposée)
-API_KEY = "xai-ta-nouvelle-cle-ici"
+from openai import OpenAI as XAIClient
 
-print("🔍 Test de connexion à Grok...")
 
-client = OpenAI(
-    api_key=API_KEY,
-    base_url="https://api.x.ai/v1",
-)
+def extract_output_text(response):
+    output_text = getattr(response, 'output_text', None)
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
 
-try:
-    response = client.chat.completions.create(
-        model="grok-beta",
-        messages=[
-            {"role": "user", "content": "Dis bonjour à un étudiant béninois en une phrase"}
-        ],
-        max_tokens=100,
+    chunks = []
+    for item in getattr(response, 'output', []) or []:
+        for content in getattr(item, 'content', []) or []:
+            if getattr(content, 'type', None) == 'output_text' and getattr(content, 'text', None):
+                chunks.append(content.text.strip())
+    return "\n".join(chunks).strip()
+
+
+def main():
+    api_key = os.getenv('XAI_API_KEY', '').strip()
+    model = os.getenv('XAI_MODEL', 'grok-3-mini')
+    base_url = os.getenv('XAI_API_BASE', 'https://api.x.ai/v1').rstrip('/')
+
+    if not api_key:
+        print("XAI_API_KEY est manquante. Definis-la dans l'environnement avant le test.")
+        raise SystemExit(1)
+
+    print(f"Test de connexion a Grok sur {base_url} avec le modele {model}...")
+
+    client = XAIClient(
+        api_key=api_key,
+        base_url=base_url,
+        timeout=30.0,
     )
-    print("✅ Succès! Réponse:", response.choices[0].message.content)
-except Exception as e:
-    print("❌ Erreur:", e)
+
+    response = client.responses.create(
+        model=model,
+        input=[
+            {
+                'role': 'system',
+                'content': "Tu es O+, un conseiller d'orientation universitaire beninois.",
+            },
+            {
+                'role': 'user',
+                'content': "Dis bonjour a un etudiant beninois en une phrase.",
+            },
+        ],
+        store=False,
+    )
+
+    text = extract_output_text(response)
+    if not text:
+        print("La reponse xAI ne contient aucun texte exploitable.")
+        raise SystemExit(1)
+
+    print("Succes. Reponse :")
+    print(text)
+
+
+if __name__ == '__main__':
+    try:
+        main()
+    except Exception as exc:
+        print(f"Erreur pendant le test Grok : {exc}")
+        raise SystemExit(1) from exc

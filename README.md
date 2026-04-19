@@ -1,199 +1,226 @@
-# ORIENTA+ 🎓
-## Plateforme d'orientation universitaire pour les bacheliers béninois
+# ORIENTA+
 
----
+Plateforme d'orientation universitaire pour les bacheliers beninois.
 
-## 🚀 Stack technique
+ORIENTA+ combine :
+- un backend Django REST pour les donnees, suggestions et endpoints admin,
+- un frontend React/Vite pour l'experience utilisateur,
+- une integration xAI/Grok pour le chatbot O+.
 
-| Couche      | Technologie                                    |
-|-------------|------------------------------------------------|
-| Backend     | Django 4.2 + DRF + SimpleJWT                 |
-| Base de données | PostgreSQL                                |
-| Frontend    | React 18 + Vite + Tailwind CSS               |
-| IA          | Xai (chatbot conseiller)       |
-| Fonts       | Syne (display) + Plus Jakarta Sans (body)     |
+## Stack technique
 
----
+| Couche | Technologie |
+| --- | --- |
+| Backend | Django 4.2, Django REST Framework, SimpleJWT |
+| Base de donnees | PostgreSQL |
+| Frontend | React 18, Vite, Tailwind CSS |
+| IA | xAI Grok via SDK OpenAI-compatible |
 
-## 📁 Structure du projet
+## Structure du projet
 
-```
+```text
 orienta_plus/
-├── backend/
-│   ├── orienta_backend/     # Config Django
-│   │   ├── settings.py
-│   │   └── urls.py
-│   ├── orienta/             # App principale
-│   │   ├── models.py        # Modèles de données
-│   │   ├── views.py         # API REST + chatbot IA
-│   │   ├── serializers.py
-│   │   ├── urls.py
-│   │   ├── algo.py          # Algorithme de suggestion
-│   │   └── admin.py
-│   ├── manage.py
-│   ├── requirements.txt
-│   └── .env.example
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── EspaceEtudiant.jsx  ← Page principale (animation + formulaire)
-│   │   │   ├── UniversitesPage.jsx ← Répertoire universités Bénin
-│   │   │   ├── FilieresPage.jsx    ← Filières + débouchés + métiers
-│   │   │   └── admin/
-│   │   │       ├── AdminLogin.jsx  ← Login admin séparé
-│   │   │       ├── AdminLayout.jsx ← Layout sidebar
-│   │   │       ├── AdminDashboard.jsx
-│   │   │       ├── GestionSeries.jsx
-│   │   │       ├── GestionMatieres.jsx
-│   │   │       ├── GestionUniversites.jsx
-│   │   │       ├── GestionFilieres.jsx
-│   │   │       └── GestionSeuils.jsx
-│   │   ├── components/
-│   │   │   ├── AnimationIntro.jsx  ← Animation cinématique 8s
-│   │   │   ├── ChatbotIA.jsx       ← Chatbot GPT-4o mini
-│   │   │   ├── Navbar.jsx
-│   │   │   ├── etudiant/
-│   │   │   │   ├── FormulaireNotes.jsx
-│   │   │   │   ├── BarreCompatibilite.jsx
-│   │   │   │   ├── ResultatCarte.jsx
-│   │   │   │   └── ModalDetailFiliere.jsx
-│   │   │   └── admin/
-│   │   │       └── CRUDTable.jsx
-│   │   └── api/
-│   │       └── client.js    ← Axios + helpers API
-│   ├── tailwind.config.js
-│   ├── vite.config.js
-│   └── package.json
-└── scripts/
-    └── insert_example_data.py  ← Données réelles béninoises
+|-- backend/
+|   |-- orienta_backend/      # Settings Django, urls, wsgi
+|   |-- orienta/              # Models, serializers, views, algo, chatbot
+|   |-- .env.example
+|   |-- manage.py
+|   `-- requirements.txt
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- pages/
+|   |   `-- api/
+|   |-- .env.example
+|   `-- package.json
+|-- scripts/
+`-- README.md
 ```
 
----
+## Fonctions principales
 
-## ⚙️ Installation
+- Simulation d'orientation selon la serie et les notes.
+- Consultation des filieres, universites et seuils.
+- Espace admin securise par JWT.
+- Chatbot O+ branche sur Grok avec fallback hors ligne si xAI est indisponible.
+- Envoi des resultats par email ou WhatsApp selon la configuration.
 
-### 1. Prérequis
+## Installation
+
+### 1. Prerequis
+
 - Python 3.10+
 - Node.js 18+
 - PostgreSQL 14+
 
-### 2. Base de données PostgreSQL
+### 2. Base de donnees
+
 ```sql
-CREATE DATABASE orienta_db;
-CREATE USER orienta_user WITH PASSWORD '';
-GRANT ALL PRIVILEGES ON DATABASE orienta_db TO orienta_user;
+CREATE DATABASE orienta;
+CREATE USER orienta_user WITH PASSWORD 'change-me';
+GRANT ALL PRIVILEGES ON DATABASE orienta TO orienta_user;
 ```
 
 ### 3. Backend Django
+
 ```bash
 cd backend
 
-# Créer l'environnement virtuel
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python -m venv .venv
+```
 
-# Installer les dépendances
+Activation de l'environnement :
+
+```bash
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Installation et configuration :
+
+```bash
 pip install -r requirements.txt
+```
 
-# Configurer les variables d'environnement
+Copie du fichier d'environnement :
+
+```bash
+# Windows PowerShell
+Copy-Item .env.example .env
+
+# macOS / Linux
 cp .env.example .env
-# Éditer .env et renseigner DB_PASSWORD, XAI_API_KEY, etc.
+```
 
-# Migrations
+Variables minimales a renseigner dans `backend/.env` :
+
+```env
+DB_NAME=orienta
+DB_USER=orienta_user
+DB_PASSWORD=change-me
+DB_HOST=localhost
+DB_PORT=5432
+
+XAI_API_KEY=xai-votre-cle-ici
+XAI_API_BASE=https://api.x.ai/v1
+XAI_MODEL=grok-3-mini
+```
+
+Lancement :
+
+```bash
 python manage.py makemigrations
 python manage.py migrate
-
-# Créer le superadmin
 python manage.py createsuperuser
-
-# Lancer le serveur
 python manage.py runserver
 ```
 
-### 4. Insérer les données réelles (universités béninoises)
-```bash
-# Depuis la racine du projet
-python scripts/insert_example_data.py
-```
-Cela insère automatiquement :
-- 22 séries de bac (A1, B, C, D, E, F1, F2, F3, G1, G2...)
-- 26 matières avec coefficients
-- 103 universités béninoises (UAC, UNSTIM, EPAC, FSS, ENEAM, UP, UATM, UCAO, etc.)
-- 13 filières avec débouchés et salaires
-- ~22 seuils d'admission configurés
+### 4. Frontend React
 
-### 5. Frontend React
 ```bash
 cd frontend
-
-# Installer les dépendances
 npm install
+```
 
-# Copier les variables d'environnement
+Copie du fichier d'environnement :
+
+```bash
+# Windows PowerShell
+Copy-Item .env.example .env.local
+
+# macOS / Linux
 cp .env.example .env.local
+```
 
-# Lancer le serveur de dev
+Puis lancer le front :
+
+```bash
 npm run dev
 ```
 
----
-## 🔐 Espace Admin
+Par defaut, `VITE_API_URL` peut rester vide en developpement si le proxy Vite est utilise.
 
-L'espace admin est **complètement séparé** de la plateforme publique :
+## Integration IA Grok
 
-| URL publique | URL admin |
-|---|---|
-| `http://localhost:5173/` | `http://localhost:5173/admin/login` |
-| `http://localhost:5173/universites` | `http://localhost:5173/admin/` |
-| `http://localhost:5173/filieres` | `http://localhost:5173/admin/seuils` |
+L'integration du chatbot utilise maintenant une configuration xAI coherente sur tout le projet :
 
-### Connexion admin
-- Utiliser les identifiants créés avec `python manage.py createsuperuser`
-- Token JWT valable 8h, refresh 7 jours
+- `XAI_API_KEY` pour la cle API.
+- `XAI_API_BASE` pour l'endpoint xAI, par defaut `https://api.x.ai/v1`.
+- `XAI_MODEL` pour choisir le modele, par defaut `grok-3-mini`.
+- `XAI_USE_RESPONSES_API=True` pour privilegier la Responses API.
+- fallback automatique vers `chat.completions` si necessaire.
+- fallback hors ligne si la cle manque ou si xAI est temporairement indisponible.
 
----
+Le service central du chatbot se trouve dans `backend/orienta/grok_service.py`.
 
-## 📊 Algorithme de suggestion
+Pour tester rapidement la connexion a Grok :
 
-Pour chaque filière compatible avec la série :
-1. On prend ses 3 matières prioritaires
-2. Moyenne = (note1 + note2 + note3) / 3
-3. Comparaison avec les seuils de chaque université :
-   - `>= seuil_bourse` → 80–100% — 🏆 Bourse complète (vert)
-   - `>= seuil_demi_bourse` → 50–79% — 🎓 Demi-bourse (bleu)
-   - `>= seuil_minimum` → 20–49% — 📚 Admission payante (orange)
-   - Sinon → 0% — Non admissible (rouge)
-4. Résultats triés par compatibilité décroissante
-
----
-
-## 🌐 Déploiement (Railway / Render)
-
-### Backend
 ```bash
-# Ajouter ces variables d'environnement dans Railway/Render :
-SECRET_KEY=...
-DEBUG=False
-ALLOWED_HOSTS=votre-domaine.railway.app
-DATABASE_URL=postgresql://...  # Fourni automatiquement par Railway
-XAI KEY =sk-...
-CORS_ALLOWED_ORIGINS=https://votre-frontend.vercel.app
+cd backend
+python test_grok.py
 ```
 
-### Frontend
+Ce script lit directement `XAI_API_KEY`, `XAI_API_BASE` et `XAI_MODEL` depuis l'environnement.
+
+## Jeux de donnees
+
+Depuis la racine du projet :
+
+```bash
+python scripts/insert_example_data.py
+```
+
+Le script insere les series, matieres, universites, filieres et seuils d'exemple utilises par l'application.
+
+## Endpoints utiles
+
+- `POST /api/suggerer/` : simulation d'orientation.
+- `POST /api/chatbot/` : conversation avec O+.
+- `POST /api/envoyer-resultats/` : partage des resultats.
+- `GET /api/stats/` : statistiques dashboard admin.
+- `POST /api/token/` et `POST /api/token/refresh/` : authentification admin.
+
+## Espace admin
+
+URLs principales en local :
+
+- Front public : `http://localhost:5173/`
+- Login admin : `http://localhost:5173/admin/login`
+- Dashboard admin : `http://localhost:5173/admin/`
+
+Utiliser le compte cree avec `python manage.py createsuperuser`.
+
+## Deploiement
+
+Variables backend minimales a definir en production :
+
+```env
+SECRET_KEY=...
+DEBUG=False
+ALLOWED_HOSTS=votre-domaine
+CORS_ALLOWED_ORIGINS=https://votre-frontend.app
+DB_NAME=...
+DB_USER=...
+DB_PASSWORD=...
+DB_HOST=...
+DB_PORT=5432
+XAI_API_KEY=xai-votre-cle
+XAI_API_BASE=https://api.x.ai/v1
+XAI_MODEL=grok-3-mini
+```
+
+Build frontend :
+
 ```bash
 cd frontend
 npm run build
-# Déployer le dossier dist/ sur Vercel, Netlify, etc.
 ```
 
----
+## Ressources
 
-## 📞 Contacts & ressources
-
-- Universités béninoises : https://www.mesrs.bj
-- Bourses nationales (ANIP) : https://www.anipbenin.bj
-- Support technique : contact@orienta.bj
-
----
-
+- Ministere de l'Enseignement Superieur et de la Recherche Scientifique : https://www.mesrs.bj
+- ANIP Benin : https://www.anipbenin.bj
+- Documentation xAI : https://docs.x.ai

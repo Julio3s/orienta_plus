@@ -2,7 +2,7 @@
 export function BarreCompatibilite({ pourcentage, statut }) {
   const colors = {
     bourse: { bar: '#C96A4A', bg: 'rgba(201,106,74,0.15)', text: '#EAA07D' },
-    demi_bourse: { bar: '#8C6FF7', bg: 'rgba(140,111,247,0.15)', text: '#B7A7FF' },
+    demi_bourse: { bar: '#2F5C7F', bg: 'rgba(47,92,127,0.15)', text: '#9CC0D7' },
     payant: { bar: '#D6A45B', bg: 'rgba(214,164,91,0.15)', text: '#EDC98A' },
     non_admissible: { bar: '#EF4444', bg: 'rgba(239,68,68,0.15)', text: '#f87171' },
   }

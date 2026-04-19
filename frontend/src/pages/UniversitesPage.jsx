@@ -47,24 +47,24 @@ export default function UniversitesPage() {
   }
 
   return (
-    <div className="mesh-bg public-page-shell" style={{ minHeight: '100vh' }}>
+    <div className="public-page-shell">
       <Navbar />
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '24px 14px' : '32px 16px' }}>
-        <div style={{ animation: 'slideUp 0.5s ease' }}>
+      <main className="public-page-main">
+        <section className="public-page-hero" style={{ animation: 'slideUp 0.5s ease' }}>
           <div
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              background: 'rgba(140,111,247,0.1)',
-              border: '1px solid rgba(140,111,247,0.2)',
+              background: 'rgba(47,92,127,0.1)',
+              border: '1px solid rgba(47,92,127,0.2)',
               borderRadius: 20,
               padding: '6px 16px',
               marginBottom: 20,
             }}
           >
-            <span style={{ color: '#B7A7FF', fontSize: 13, fontWeight: 500 }}>
+            <span style={{ color: '#9CC0D7', fontSize: 13, fontWeight: 500 }}>
               Repertoire universitaire du Benin
             </span>
           </div>
@@ -95,15 +95,10 @@ export default function UniversitesPage() {
               placeholder="Rechercher une universite ou une ville..."
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              className="public-page-input"
               style={{
                 flex: '1 1 220px',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 12,
-                padding: '10px 16px',
-                color: '#F7EFE8',
                 fontSize: 14,
-                outline: 'none',
                 fontFamily: 'Manrope, sans-serif',
               }}
             />
@@ -116,9 +111,9 @@ export default function UniversitesPage() {
                   style={{
                     padding: '10px 16px',
                     borderRadius: 12,
-                    border: `1px solid ${filtreType === type ? '#8C6FF7' : 'rgba(255,255,255,0.1)'}`,
-                    background: filtreType === type ? 'rgba(140,111,247,0.15)' : 'transparent',
-                    color: filtreType === type ? '#B7A7FF' : '#8B7669',
+                    border: `1px solid ${filtreType === type ? '#2F5C7F' : 'rgba(255,255,255,0.1)'}`,
+                    background: filtreType === type ? 'rgba(47,92,127,0.15)' : 'transparent',
+                    color: filtreType === type ? '#9CC0D7' : '#8B7669',
                     cursor: 'pointer',
                     fontSize: 13,
                     fontFamily: 'Manrope, sans-serif',
@@ -156,7 +151,7 @@ export default function UniversitesPage() {
           <p style={{ color: '#8B7669', fontSize: 13, margin: '0 0 20px' }}>
             {filtered.length} universite{filtered.length > 1 ? 's' : ''} trouvee{filtered.length > 1 ? 's' : ''}
           </p>
-        </div>
+        </section>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 60, color: '#B59F90' }}>
@@ -164,8 +159,8 @@ export default function UniversitesPage() {
               style={{
                 width: 40,
                 height: 40,
-                border: '3px solid rgba(140,111,247,0.2)',
-                borderTopColor: '#8C6FF7',
+                border: '3px solid rgba(47,92,127,0.2)',
+                borderTopColor: '#2F5C7F',
                 borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite',
                 margin: '0 auto 16px',
@@ -189,9 +184,12 @@ export default function UniversitesPage() {
                 <div
                   key={u.id}
                   onClick={() => setSelected(isSelected ? null : u)}
+                  className="public-page-card"
                   style={{
-                    background: isSelected ? 'rgba(140,111,247,0.07)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${isSelected ? 'rgba(140,111,247,0.35)' : 'rgba(255,255,255,0.07)'}`,
+                    background: isSelected
+                      ? 'linear-gradient(180deg, rgba(18,16,28,0.86), rgba(18,16,28,0.92))'
+                      : undefined,
+                    border: `1px solid ${isSelected ? 'rgba(47,92,127,0.35)' : 'rgba(255,255,255,0.07)'}`,
                     borderRadius: 18,
                     padding: '20px 22px',
                     cursor: 'pointer',
@@ -199,7 +197,7 @@ export default function UniversitesPage() {
                     animation: `slideUp 0.4s ease ${i * 0.04}s both`,
                   }}
                   onMouseEnter={(event) => {
-                    if (!isSelected) event.currentTarget.style.borderColor = 'rgba(140,111,247,0.25)'
+                    if (!isSelected) event.currentTarget.style.borderColor = 'rgba(47,92,127,0.25)'
                   }}
                   onMouseLeave={(event) => {
                     if (!isSelected) event.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'
@@ -301,8 +299,8 @@ export default function UniversitesPage() {
                     {!isSelected && filieresUniv.length > 4 && (
                       <span
                         style={{
-                          background: 'rgba(140,111,247,0.1)',
-                          color: '#B7A7FF',
+                          background: 'rgba(47,92,127,0.1)',
+                          color: '#9CC0D7',
                           borderRadius: 20,
                           padding: '3px 10px',
                           fontSize: 11.5,
@@ -346,10 +344,10 @@ export default function UniversitesPage() {
                           style={{
                             display: 'inline-block',
                             marginTop: 8,
-                            color: '#8C6FF7',
+                            color: '#2F5C7F',
                             fontSize: 13,
                             textDecoration: 'none',
-                            background: 'rgba(140,111,247,0.1)',
+                            background: 'rgba(47,92,127,0.1)',
                             padding: '5px 12px',
                             borderRadius: 8,
                           }}
@@ -386,13 +384,10 @@ export default function UniversitesPage() {
           </div>
         )}
 
-        <div
+        <section
+          className="public-page-panel public-page-section"
           style={{
             marginTop: 60,
-            padding: '32px',
-            background: 'rgba(255,255,255,0.02)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 24,
           }}
         >
           <h2 style={{ margin: '0 0 8px', fontFamily: 'Fraunces, serif', fontSize: 20, color: '#F7EFE8' }}>
@@ -405,10 +400,10 @@ export default function UniversitesPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))', gap: 12 }}>
             {[
               { ville: 'Cotonou', count: universites.filter((u) => u.ville === 'Cotonou').length, color: '#C96A4A' },
-              { ville: 'Abomey-Calavi', count: universites.filter((u) => u.ville === 'Abomey-Calavi').length, color: '#8C6FF7' },
+              { ville: 'Abomey-Calavi', count: universites.filter((u) => u.ville === 'Abomey-Calavi').length, color: '#2F5C7F' },
               { ville: 'Parakou', count: universites.filter((u) => u.ville === 'Parakou').length, color: '#D6A45B' },
-              { ville: 'Abomey', count: universites.filter((u) => u.ville === 'Abomey').length, color: '#C6A0FF' },
-              { ville: 'Porto-Novo', count: universites.filter((u) => u.ville === 'Porto-Novo').length, color: '#f472b6' },
+              { ville: 'Abomey', count: universites.filter((u) => u.ville === 'Abomey').length, color: '#9CC0D7' },
+              { ville: 'Porto-Novo', count: universites.filter((u) => u.ville === 'Porto-Novo').length, color: '#6E9B73' },
             ].map((ville) => (
               <div
                 key={ville.ville}
@@ -434,8 +429,8 @@ export default function UniversitesPage() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
 
       <button
         onClick={() => setChatOpen((prev) => !prev)}
@@ -446,14 +441,14 @@ export default function UniversitesPage() {
           zIndex: 999,
           width: isMobile ? 52 : 56,
           height: isMobile ? 52 : 56,
-          borderRadius: '50%',
+          borderRadius: 18,
           background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
           border: 'none',
           cursor: 'pointer',
           fontSize: 16,
           fontWeight: 700,
           color: '#fff',
-          boxShadow: '0 8px 32px rgba(201,106,74,0.4)',
+          boxShadow: '0 14px 32px rgba(201,106,74,0.36)',
         }}
       >
         O+

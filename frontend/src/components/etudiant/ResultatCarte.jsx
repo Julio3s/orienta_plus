@@ -2,7 +2,7 @@ import { BarreCompatibilite } from './BarreCompatibilite'
 
 const STATUT_CONFIG = {
   bourse: { label: 'Bourse complete', color: '#C96A4A', bg: 'rgba(201,106,74,0.12)' },
-  demi_bourse: { label: 'Demi-bourse', color: '#8C6FF7', bg: 'rgba(140,111,247,0.12)' },
+  demi_bourse: { label: 'Demi-bourse', color: '#2F5C7F', bg: 'rgba(47,92,127,0.12)' },
   payant: { label: 'Admission payante', color: '#D6A45B', bg: 'rgba(214,164,91,0.12)' },
   non_admissible: { label: 'Non admissible', color: '#EF4444', bg: 'rgba(239,68,68,0.12)' },
 }

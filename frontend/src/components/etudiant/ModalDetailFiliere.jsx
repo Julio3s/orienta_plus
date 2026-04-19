@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 const STATUT_CONFIG = {
   bourse: { label: 'Bourse complete', color: '#C96A4A' },
-  demi_bourse: { label: 'Demi-bourse', color: '#8C6FF7' },
+  demi_bourse: { label: 'Demi-bourse', color: '#2F5C7F' },
   payant: { label: 'Admission payante', color: '#D6A45B' },
   non_admissible: { label: 'Non admissible', color: '#EF4444' },
 }
@@ -136,8 +136,8 @@ export default function ModalDetailFiliere({ resultat, onClose }) {
             )}
 
             {resultat.filiere_taux_emploi && (
-              <div style={{ background: 'rgba(140,111,247,0.08)', border: '1px solid rgba(140,111,247,0.15)', borderRadius: 12, padding: '12px 16px' }}>
-                <div style={{ fontSize: 11, color: '#8C6FF7', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ background: 'rgba(47,92,127,0.08)', border: '1px solid rgba(47,92,127,0.15)', borderRadius: 12, padding: '12px 16px' }}>
+                <div style={{ fontSize: 11, color: '#2F5C7F', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Taux d emploi
                 </div>
                 <div style={{ fontSize: 14, color: '#F7EFE8', fontWeight: 600 }}>{resultat.filiere_taux_emploi}% a 1 an</div>
@@ -246,7 +246,7 @@ export default function ModalDetailFiliere({ resultat, onClose }) {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
                       {[
                         { label: 'Min', val: universite.seuil_minimum, color: '#EF4444' },
-                        { label: 'Demi-bourse', val: universite.seuil_demi_bourse, color: '#8C6FF7' },
+                        { label: 'Demi-bourse', val: universite.seuil_demi_bourse, color: '#2F5C7F' },
                         { label: 'Bourse', val: universite.seuil_bourse, color: '#C96A4A' },
                       ].map((item) => (
                         <div

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
-import heroCampus from '../assets/home/hero-campus.jpg'
 import studentsOutdoor from '../assets/home/students-outdoor.jpg'
 import studyLaptop from '../assets/home/study-laptop.jpg'
 import africanStudentsGroup from '../assets/home/slides/african-students-group.jpg'
 import africanGraduate from '../assets/home/slides/african-graduate.jpg'
 import africanStudentPortrait from '../assets/home/slides/african-student-portrait.jpg'
-import universityGhanaTower from '../assets/home/slides/university-ghana-tower.jpg'
-import universityGhanaAerial from '../assets/home/slides/university-ghana-aerial.jpg'
 
 const HOME_INTRO_STORAGE_KEY = 'orienta_home_intro_seen'
+const INDIGO = '#2F5C7F'
+const INDIGO_SOFT = '#9CC0D7'
+const PALM = '#6E9B73'
+const PALM_SOFT = '#BED6C0'
 
 function readIntroState() {
   if (typeof window === 'undefined') return false
@@ -33,10 +34,10 @@ function markIntroSeen() {
 }
 
 const PLATFORM_STATS = [
-  { value: '13+', label: 'Universités référencées', detail: 'publiques et privées', color: '#10B981' },
-  { value: '13+', label: 'Filières expliquées', detail: 'durée, débouchés, métiers', color: '#3B82F6' },
-  { value: '3 niveaux', label: 'Seuils clarifiés', detail: 'admission, demi-bourse, bourse', color: '#F59E0B' },
-  { value: '1 outil', label: 'Parcours guidé', detail: 'série, notes, compatibilité', color: '#a78bfa' },
+  { value: '13+', label: 'Universités référencées', detail: 'publiques et privées', color: '#C96A4A' },
+  { value: '13+', label: 'Filières expliquées', detail: 'durée, débouchés, métiers', color: INDIGO },
+  { value: '3 niveaux', label: 'Seuils clarifiés', detail: 'admission, demi-bourse, bourse', color: '#D6A45B' },
+  { value: '4 villes', label: 'Repères visibles', detail: 'Cotonou, Calavi, Porto-Novo, Parakou', color: PALM },
 ]
 
 const FEATURE_CARDS = [
@@ -45,21 +46,21 @@ const FEATURE_CARDS = [
     icon: '',
     title: "Comprendre l'offre avant de choisir",
     text: 'ORIENTA+ regroupe les universités, les villes, les statuts public ou privé et les parcours proposés pour éviter une recherche éparpillée.',
-    color: '#10B981',
+    color: '#C96A4A',
   },
   {
     index: '02',
     icon: '📚',
     title: 'Lire les filières avec plus de concret',
     text: "Chaque filière est reliée à sa durée, à ses débouchés, à des métiers possibles et aux informations utiles pour juger si elle colle vraiment au projet de l'élève.",
-    color: '#3B82F6',
+    color: INDIGO,
   },
   {
     index: '03',
     icon: '',
     title: 'Passer des notes à des pistes réelles',
     text: "La plateforme relie les notes du bac aux seuils d'admission, à la demi-bourse, à la bourse complète et aux frais pour aider à décider sans brouillard.",
-    color: '#F59E0B',
+    color: '#D6A45B',
   },
 ]
 
@@ -76,7 +77,7 @@ const NAVIGATION_CARDS = [
     title: 'Simuler mon orientation',
     text: 'Saisir la série et les notes du bac pour faire ressortir des filières compatibles et des seuils utiles.',
     cta: 'Commencer la simulation',
-    color: '#10B981',
+    color: '#C96A4A',
   },
   {
     to: '/universites',
@@ -84,7 +85,7 @@ const NAVIGATION_CARDS = [
     title: 'Parcourir les universités',
     text: "Comparer les établissements, leurs localisations, leurs statuts et les filières qu'ils proposent.",
     cta: 'Explorer les universités',
-    color: '#3B82F6',
+    color: INDIGO,
   },
   {
     to: '/filieres',
@@ -92,7 +93,7 @@ const NAVIGATION_CARDS = [
     title: 'Explorer les filières',
     text: 'Lire les parcours, les débouchés concrets et les métiers associés avant de se positionner.',
     cta: 'Voir les filières',
-    color: '#a78bfa',
+    color: '#D6A45B',
   },
 ]
 
@@ -105,15 +106,14 @@ const JOBS_PREVIEW = [
   { role: "Juriste d'entreprise", salary: '350–600k FCFA', employer: 'Banques, ONG internationales' },
 ]
 
+const BENIN_TOUCHPOINTS = ['Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Parakou']
+
 const HOME_GALLERY = [
-  { src: africanStudentsGroup, label: 'Élèves africains' },
-  { src: universityGhanaTower, label: 'Campus universitaire' },
-  { src: africanGraduate, label: 'Réussite académique' },
-  { src: universityGhanaAerial, label: 'Vue de campus' },
+  { src: studentsOutdoor, label: 'Cour et révision' },
+  { src: africanStudentsGroup, label: 'Élèves en groupe' },
+  { src: studyLaptop, label: 'Travail guidé' },
   { src: africanStudentPortrait, label: 'Portrait étudiant' },
-  { src: heroCampus, label: 'Patrimoine universitaire' },
-  { src: studentsOutdoor, label: 'Vie étudiante' },
-  { src: studyLaptop, label: 'Simulation ORIENTA+' },
+  { src: africanGraduate, label: 'Objectif post-bac' },
 ]
 
 // Nouvelle animation de début style "loading créatif"
@@ -188,7 +188,7 @@ function CreativeIntro({ onComplete }) {
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'linear-gradient(135deg, #10b981, #059669)',
+          background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
           borderRadius: 36,
           transform: 'rotate(0deg)',
           animation: 'spin3d 2s ease-in-out infinite',
@@ -206,7 +206,7 @@ function CreativeIntro({ onComplete }) {
             fontSize: 56,
             fontWeight: 800,
             fontFamily: "'Plus Jakarta Sans', sans-serif",
-            background: 'linear-gradient(135deg, #10b981, #3b82f6)',
+            background: `linear-gradient(135deg, #C96A4A, ${INDIGO})`,
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
             color: 'transparent',
@@ -252,7 +252,7 @@ function CreativeIntro({ onComplete }) {
         <div style={{
           width: `${progress}%`,
           height: '100%',
-          background: 'linear-gradient(90deg, #10b981, #3b82f6, #a78bfa)',
+          background: `linear-gradient(90deg, #C96A4A, #D6A45B, ${INDIGO})`,
           borderRadius: 4,
           transition: 'width 0.02s linear',
           position: 'relative',
@@ -264,8 +264,8 @@ function CreativeIntro({ onComplete }) {
             width: 8,
             height: 8,
             borderRadius: '50%',
-            background: '#10b981',
-            boxShadow: '0 0 10px #10b981',
+            background: '#C96A4A',
+            boxShadow: '0 0 10px #C96A4A',
           }} />
         </div>
       </div>
@@ -321,11 +321,11 @@ export default function HomePage() {
     label: {
       display: 'inline-block',
       marginBottom: 16,
-      background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(59,130,246,0.15))',
+      background: 'linear-gradient(135deg, rgba(201,106,74,0.14), rgba(47,92,127,0.14))',
       border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 100,
       padding: '6px 18px',
-      color: '#10b981',
+      color: '#EBC3A3',
       fontSize: 12,
       fontWeight: 600,
       letterSpacing: '0.5px',
@@ -376,23 +376,31 @@ export default function HomePage() {
       {!animDone && <CreativeIntro onComplete={handleIntroComplete} />}
 
       {animDone && (
-        <div className="home-shell public-page-shell" style={{ position: 'relative', minHeight: '100vh', background: '#0a0a0f' }}>
-          {/* Background Gallery */}
-          <div className="home-background-gallery" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
-            <div className="home-gallery-row" style={{ width: '100%', overflow: 'hidden', whiteSpace: 'nowrap', marginBottom: 20, opacity: 0.4 }}>
-              <div className="home-gallery-track" style={{ display: 'inline-flex', gap: 20, animation: 'scrollHorizontal 45s linear infinite' }}>
+        <div className="home-shell public-page-shell">
+          <div className="home-background-gallery">
+            <div className="home-gallery-row home-gallery-row-a">
+              <div className="home-gallery-track">
                 {galleryTrackA.map((slide, index) => (
-                  <div key={`a-${index}`} style={{ width: 280, height: 180, borderRadius: 20, overflow: 'hidden', background: '#1a1a24', display: 'inline-block' }}>
-                    <img src={slide.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div key={`a-${index}`} className={`home-gallery-card ${index % 3 === 0 ? 'home-gallery-card-tall' : ''}`}>
+                    <img src={slide.src} alt={slide.label} />
                   </div>
                 ))}
               </div>
             </div>
-            <div className="home-gallery-row" style={{ width: '100%', overflow: 'hidden', whiteSpace: 'nowrap', opacity: 0.4 }}>
-              <div className="home-gallery-track" style={{ display: 'inline-flex', gap: 20, animation: 'scrollHorizontalReverse 50s linear infinite' }}>
+            <div className="home-gallery-row home-gallery-row-b">
+              <div className="home-gallery-track home-gallery-track-reverse">
                 {galleryTrackBLoop.map((slide, index) => (
-                  <div key={`b-${index}`} style={{ width: 280, height: 240, borderRadius: 20, overflow: 'hidden', background: '#1a1a24', display: 'inline-block' }}>
-                    <img src={slide.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div key={`b-${index}`} className={`home-gallery-card ${index % 2 === 0 ? 'home-gallery-card-tall' : ''}`}>
+                    <img src={slide.src} alt={slide.label} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="home-gallery-row home-gallery-row-c">
+              <div className="home-gallery-track">
+                {galleryTrackA.map((slide, index) => (
+                  <div key={`c-${index}`} className={`home-gallery-card ${index % 4 === 0 ? 'home-gallery-card-tall' : ''}`}>
+                    <img src={slide.src} alt={slide.label} />
                   </div>
                 ))}
               </div>
@@ -400,14 +408,6 @@ export default function HomePage() {
           </div>
 
           <style>{`
-            @keyframes scrollHorizontal {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-            @keyframes scrollHorizontalReverse {
-              0% { transform: translateX(-50%); }
-              100% { transform: translateX(0); }
-            }
             @keyframes fadeInUp {
               from {
                 opacity: 0;
@@ -422,14 +422,14 @@ export default function HomePage() {
               animation: fadeInUp 0.6s ease forwards;
             }
             .gradient-text {
-              background: linear-gradient(135deg, #10b981, #3b82f6, #a78bfa);
+              background: linear-gradient(135deg, #C96A4A, #EAA07D, ${INDIGO});
               -webkit-background-clip: text;
               background-clip: text;
               color: transparent;
             }
           `}</style>
 
-          <div className="home-backdrop-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'radial-gradient(circle at 20% 30%, rgba(10,10,15,0.7), rgba(5,5,10,0.95))', zIndex: 1, pointerEvents: 'none' }} />
+          <div className="home-backdrop-overlay home-backdrop-overlay-homepage" />
           
           <Navbar />
 
@@ -437,45 +437,47 @@ export default function HomePage() {
           <section style={{ ...styles.section, paddingTop: 100, position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 60, alignItems: 'center' }}>
               <div className="fade-up">
-                {/* GRAND H2 d'accueil */}
+                <span style={styles.label}>Bénin post-bac</span>
                 <h2 style={{
                   fontSize: 'clamp(42px, 6vw, 72px)',
                   fontWeight: 800,
                   fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif",
-                  lineHeight: 1.1,
-                  marginBottom: 20,
+                  lineHeight: 1.06,
+                  margin: '0 0 18px',
                   color: '#fff',
                   letterSpacing: '-0.03em',
                 }}>
-                  <span className="gradient-text"> ORIENTA+</span>
+                  <span className="gradient-text">ORIENTA+</span><br />
+                  montre enfin des élèves,<br />
+                  pas seulement des blocs abstraits.
                 </h2>
-                
-                {/* Paragraphe d'accueil */}
-                <p style={{
-                  fontSize: 'clamp(16px, 2vw, 18px)',
-                  lineHeight: 1.6,
-                  color: '#94a3b8',
-                  marginBottom: 32,
-                  maxWidth: 520,
-                  fontFamily: "'Inter', sans-serif",
-                }}>
-                  La plateforme qui vous aide à transformer votre parcours scolaire en opportunités 
-                  d'études supérieures claires et accessibles au Bénin.
-                </p>
-
-                <span style={styles.label}></span>
-                <h4 style={{ ...styles.titleFont, margin: '0 0 24px', fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 1.15, color: '#fff' }}>
-                  Comprendre ses options<br />
-                  <span className="gradient-text">avant de choisir une filière.</span>
-                </h4>
                 <p style={styles.sectionText}>
-                  ORIENTA+ rassemble universités, filières, seuils d'admission, bourses, frais et débouchés pour une orientation éclairée.
+                  ORIENTA+ remet en avant la vie scolaire, les échanges entre élèves et les repères post-bac du Bénin pour que l'orientation paraisse plus locale, plus humaine et plus concrète.
                 </p>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 32 }}>
+                  {BENIN_TOUCHPOINTS.map((city) => (
+                    <span
+                      key={city}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 999,
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'rgba(255,255,255,0.04)',
+                        color: '#d8e2ec',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: "'Inter', sans-serif",
+                      }}
+                    >
+                      {city}
+                    </span>
+                  ))}
+                </div>
                 <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 48 }}>
                   <Link
                     to="/orientation"
                     style={{
-                      background: 'linear-gradient(135deg, #10b981, #059669)',
+                      background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
                       color: '#fff',
                       borderRadius: 14,
                       padding: '14px 32px',
@@ -530,12 +532,42 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Image principale */}
-              <div className="fade-up" style={{ animationDelay: '0.1s' }}>
-                <div style={{ position: 'relative', borderRadius: 32, overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-                  <img src={africanStudentsGroup} alt="Étudiants africains" style={{ width: '100%', height: 'auto', display: 'block' }} />
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', padding: '24px' }}>
-                    <p style={{ color: '#fff', fontSize: 14, margin: 0, fontFamily: "'Inter', sans-serif" }}>📍 Campus universitaire — Découvrir l'offre de formation</p>
+              <div className="fade-up home-homepage-visual" style={{ animationDelay: '0.1s' }}>
+                <div className="home-homepage-visual-grid">
+                  <div
+                    className="home-homepage-photo home-homepage-photo-main"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(8,10,14,0.18), rgba(8,10,14,0.78)), url(${studentsOutdoor})`,
+                    }}
+                  >
+                    <span className="home-homepage-photo-badge">Vie scolaire</span>
+                    <div className="home-homepage-photo-note">
+                      Des élèves, une cour, des cahiers et une présence humaine qui ressemblent davantage au quotidien post-bac.
+                    </div>
+                  </div>
+
+                  <div
+                    className="home-homepage-photo home-homepage-photo-side"
+                    style={{
+                      backgroundImage: `linear-gradient(180deg, rgba(10,14,18,0.1), rgba(10,14,18,0.74)), url(${africanStudentPortrait})`,
+                    }}
+                  >
+                    <span className="home-homepage-photo-badge">Projet d'avenir</span>
+                    <div className="home-homepage-photo-note">Un visage étudiant au premier plan.</div>
+                  </div>
+
+                  <div
+                    className="home-homepage-floating-card"
+                    style={{
+                      background: 'linear-gradient(180deg, rgba(10,14,18,0.8), rgba(10,14,18,0.92))',
+                      borderColor: 'rgba(47,92,127,0.25)',
+                    }}
+                  >
+                    <div className="home-homepage-floating-kicker">Repères locaux</div>
+                    <div className="home-homepage-floating-title">Série, notes, ville, budget, débouchés</div>
+                    <div className="home-homepage-floating-text">
+                      L'accueil parle maintenant d'élèves, de campus et de décisions d'orientation, au lieu de laisser les images du fond raconter autre chose.
+                    </div>
                   </div>
                 </div>
               </div>
@@ -547,29 +579,45 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center' }}>
               <div>
                 <div style={{ borderRadius: 28, overflow: 'hidden', marginBottom: 28 }}>
-                  <img src={universityGhanaAerial} alt="Campus aérien" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  <img src={studyLaptop} alt="Étudiants au travail" style={{ width: '100%', height: 'auto', display: 'block' }} />
                 </div>
-                <div style={{ ...styles.card, background: 'rgba(59,130,246,0.05)', borderColor: 'rgba(59,130,246,0.15)' }}>
-                  <div style={{ color: '#60a5fa', fontWeight: 600, fontSize: 13, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>🎓</div>
-                  <div style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.6 }}>L'offre de formation, le choix de vie, et la simulation : trois angles pour accompagner une décision qui engage plusieurs années.</div>
+                <div style={{ ...styles.card, background: 'rgba(47,92,127,0.07)', borderColor: 'rgba(47,92,127,0.2)' }}>
+                  <div style={{ color: INDIGO_SOFT, fontWeight: 600, fontSize: 13, marginBottom: 8, fontFamily: "'Inter', sans-serif" }}>🎓</div>
+                  <div style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.6 }}>L'offre de formation, le choix de vie et la simulation restent là, mais avec un décor plus étudiant et moins impersonnel.</div>
                 </div>
               </div>
 
               <div>
                 <span style={styles.label}> Projet ORIENTA+</span>
-                <h2 style={styles.sectionTitle}>Une plateforme qui aide à passer d'une question floue à une décision mieux documentée.</h2>
+                <h2 style={styles.sectionTitle}>Une plateforme qui aide à passer d'une question floue à une décision mieux documentée et plus ancrée au Bénin.</h2>
                 <p style={styles.sectionText}>
-                  Beaucoup d'élèves cherchent une filière ou une université avec des informations fragmentaires. ORIENTA+ restructure ces données pour proposer un point d'entrée plus fiable.
+                  Beaucoup d'élèves cherchent une filière ou une université avec des informations fragmentaires. ORIENTA+ restructure ces données, mais l'interface doit aussi évoquer les visages, les lieux d'étude et la réalité scolaire locale.
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   {PROJECT_POINTS.map((point, i) => (
                     <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(201,106,74,0.15)', border: '1px solid rgba(201,106,74,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#C96A4A' }} />
                       </div>
                       <span style={{ color: '#cbd5e1', fontSize: 15, lineHeight: 1.6, fontFamily: "'Inter', sans-serif" }}>{point}</span>
                     </div>
                   ))}
+                </div>
+                <div
+                  style={{
+                    marginTop: 24,
+                    borderRadius: 22,
+                    padding: '18px 20px',
+                    border: '1px solid rgba(110,155,115,0.24)',
+                    background: 'rgba(110,155,115,0.08)',
+                  }}
+                >
+                  <div style={{ color: PALM_SOFT, fontSize: 12, fontWeight: 700, marginBottom: 8, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                    Atmosphère visuelle
+                  </div>
+                  <div style={{ color: '#d8e2ec', fontSize: 14, lineHeight: 1.7 }}>
+                    Le fond donne maintenant plus de place aux élèves, aux uniformes, aux moments d'étude et aux repères urbains du pays.
+                  </div>
                 </div>
               </div>
             </div>
@@ -635,7 +683,7 @@ export default function HomePage() {
           <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '48px 24px 36px', background: '#0a0a0f', position: 'relative', zIndex: 2 }}>
             <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 32 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <div style={{ width: 50, height: 50, background: 'linear-gradient(135deg, #10b981, #059669)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: 24, color: '#fff' }}>O+</div>
+                <div style={{ width: 50, height: 50, background: 'linear-gradient(135deg, #C96A4A, #A94D31)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800, fontSize: 24, color: '#fff' }}>O+</div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, color: '#fff' }}>ORIENTA+ — Orientation universitaire Bénin 🇧🇯</div>
                   <div style={{ fontSize: 12, color: '#64748b' }}>Guider les visiteurs vers la simulation, les universités et les filières.</div>
@@ -647,7 +695,7 @@ export default function HomePage() {
                 <Link to="/filieres" style={{ color: '#94a3b8', textDecoration: 'none', fontSize: 14 }}>Filières</Link>
                 <Link to="/admin/login" style={{ color: '#475569', textDecoration: 'none', fontSize: 14 }}>Admin</Link>
               </div>
-              <Link to="/orientation" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', padding: '12px 28px', borderRadius: 40, color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Commencer la simulation</Link>
+              <Link to="/orientation" style={{ background: 'linear-gradient(135deg, #C96A4A, #A94D31)', padding: '12px 28px', borderRadius: 40, color: '#fff', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>Commencer la simulation</Link>
             </div>
           </footer>
         </div>

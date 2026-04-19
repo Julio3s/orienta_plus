@@ -1,14 +1,16 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import FormulaireNotes from '../components/etudiant/FormulaireNotes'
 import ResultatCarte from '../components/etudiant/ResultatCarte'
 import ModalDetailFiliere from '../components/etudiant/ModalDetailFiliere'
 import ChatbotIA from '../components/ChatbotIA'
+import useMediaQuery from '../hooks/useMediaQuery'
+import studentsOutdoor from '../assets/home/students-outdoor.jpg'
 
-const IMG_BG = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1800&q=80'
+const IMG_BG = studentsOutdoor
 
 export default function EspaceEtudiant() {
+  const isMobile = useMediaQuery('(max-width: 767px)')
   const [resultats, setResultats] = useState(null)
   const [selectedSerie, setSelectedSerie] = useState(null)
   const [modalFiliere, setModalFiliere] = useState(null)
@@ -39,27 +41,16 @@ export default function EspaceEtudiant() {
   }
 
   const filters = [
-    { key: 'tous', label: `Tous (${resultatsCount})`, color: '#10B981' },
-    { key: 'bourse', label: '🏆 Bourse complète', color: '#10B981' },
-    { key: 'demi_bourse', label: '🎓 Demi-bourse', color: '#3B82F6' },
-    { key: 'payant', label: '📚 Payant', color: '#F59E0B' },
+    { key: 'tous', label: `Tous (${resultatsCount})`, color: '#C96A4A' },
+    { key: 'bourse', label: '🏆 Bourse complète', color: '#C96A4A' },
+    { key: 'demi_bourse', label: '🎓 Demi-bourse', color: '#2F5C7F' },
+    { key: 'payant', label: '📚 Payant', color: '#D6A45B' },
   ]
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', background: '#0a0a0f' }}>
-      {/* Background */}
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        backgroundImage: `url(${IMG_BG})`,
-        backgroundSize: 'cover', backgroundPosition: 'center',
-        filter: 'brightness(0.15)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        background: 'radial-gradient(circle at 30% 20%, rgba(2,6,23,0.85), rgba(0,0,0,0.95))',
-        pointerEvents: 'none',
-      }} />
+    <div className="public-page-shell">
+      <div className="public-page-photo-backdrop" style={{ backgroundImage: `url(${IMG_BG})` }} />
+      <div className="public-page-overlay" />
 
       <style>{`
         @keyframes fadeInUp {
@@ -77,17 +68,17 @@ export default function EspaceEtudiant() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         <Navbar />
 
-        <main style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px' }}>
+        <main className="public-page-main public-page-main-narrow">
 
           {/* Hero Section */}
-          <section id="simulateur-top" className="animate-up" style={{ textAlign: 'center', padding: '50px 0 30px' }}>
+          <section id="simulateur-top" className="animate-up public-page-hero" style={{ textAlign: 'center' }}>
             <div style={{
               display: 'inline-block',
-              background: 'linear-gradient(135deg, rgba(16,185,129,0.15), rgba(59,130,246,0.1))',
-              border: '1px solid rgba(16,185,129,0.3)',
+              background: 'linear-gradient(135deg, rgba(201,106,74,0.15), rgba(47,92,127,0.1))',
+              border: '1px solid rgba(201,106,74,0.25)',
               borderRadius: 100, padding: '6px 18px', marginBottom: 20,
             }}>
-              <span style={{ color: '#10B981', fontSize: 13, fontWeight: 600 }}>🎓 Simulation d'orientation</span>
+              <span style={{ color: '#F0B39A', fontSize: 13, fontWeight: 600 }}>🎓 Simulation d'orientation</span>
             </div>
             <h1 style={{
               fontSize: 'clamp(32px, 5vw, 48px)',
@@ -100,7 +91,7 @@ export default function EspaceEtudiant() {
             }}>
               Trouve ta voie en<br />
               <span style={{
-                background: 'linear-gradient(135deg, #10B981, #3B82F6, #a78bfa)',
+                background: 'linear-gradient(135deg, #C96A4A, #EAA07D, #2F5C7F)',
                 WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
               }}>quelques clics</span>
             </h1>
@@ -109,20 +100,20 @@ export default function EspaceEtudiant() {
               color: '#94a3b8', fontSize: 15, lineHeight: 1.6,
               fontFamily: "'Inter', sans-serif",
             }}>
-              Découvre les filières qui te correspondent vraiment. Basé sur tes notes et les seuils réels des universités.
+              Découvre les filières qui te correspondent vraiment dans une ambiance plus scolaire, avec tes notes, ta série et les seuils réels des universités du Bénin.
             </p>
           </section>
 
           {/* Formulaire complet (gère ses propres étapes internes) */}
           {!showResults && (
-            <div id="formulaire-section" className="animate-fade" style={{ maxWidth: 650, margin: '0 auto', padding: '10px 0 50px' }}>
+            <div id="formulaire-section" className="animate-fade public-page-section" style={{ maxWidth: 650, margin: '0 auto' }}>
               <FormulaireNotes onResultats={handleResultats} />
             </div>
           )}
 
           {/* Résultats */}
           {showResults && resultats && (
-            <section id="resultats-section" className="animate-up" style={{ padding: '20px 0 60px' }}>
+            <section id="resultats-section" className="animate-up public-page-section public-page-panel">
               <div style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 flexWrap: 'wrap', gap: 16, marginBottom: 28,
@@ -130,10 +121,10 @@ export default function EspaceEtudiant() {
                 <div>
                   <div style={{
                     display: 'inline-block',
-                    background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)',
+                    background: 'rgba(201,106,74,0.1)', border: '1px solid rgba(201,106,74,0.2)',
                     borderRadius: 20, padding: '5px 14px', marginBottom: 12,
                   }}>
-                    <span style={{ color: '#34d399', fontSize: 12, fontWeight: 600 }}>🎓 Résultats personnalisés</span>
+                    <span style={{ color: '#F0B39A', fontSize: 12, fontWeight: 600 }}>🎓 Résultats personnalisés</span>
                   </div>
                   <h2 style={{
                     fontSize: 'clamp(26px, 4vw, 34px)',
@@ -171,7 +162,7 @@ export default function EspaceEtudiant() {
 
               {/* Liste des résultats */}
               {filteredResultats.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.02)', borderRadius: 24, color: '#64748b' }}>
+                <div className="public-page-empty">
                   Aucun résultat pour ce filtre.
                 </div>
               ) : (
@@ -185,8 +176,8 @@ export default function EspaceEtudiant() {
               {/* Callout IA */}
               <div style={{
                 marginTop: 40,
-                background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.04))',
-                border: '1px solid rgba(16,185,129,0.2)', borderRadius: 24,
+                background: 'linear-gradient(135deg, rgba(201,106,74,0.08), rgba(47,92,127,0.05))',
+                border: '1px solid rgba(201,106,74,0.2)', borderRadius: 24,
                 padding: '20px 28px', display: 'flex', gap: 20,
                 alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between',
               }}>
@@ -199,7 +190,7 @@ export default function EspaceEtudiant() {
                   </div>
                 </div>
                 <button onClick={() => setChatOpen(true)} style={{
-                  background: 'linear-gradient(135deg, #10B981, #059669)',
+                  background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
                   border: 'none', borderRadius: 14, padding: '11px 26px',
                   color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 14,
                 }}>
@@ -218,11 +209,11 @@ export default function EspaceEtudiant() {
 
       {/* Chat FAB */}
       <button onClick={() => setChatOpen(p => !p)} style={{
-        position: 'fixed', bottom: 24, right: 24, zIndex: 999,
-        width: 54, height: 54, borderRadius: '50%',
-        background: chatOpen ? '#374151' : 'linear-gradient(135deg, #10B981, #059669)',
+        position: 'fixed', bottom: isMobile ? 96 : 24, right: isMobile ? 16 : 24, zIndex: 999,
+        width: 54, height: 54, borderRadius: 18,
+        background: chatOpen ? '#2A2326' : 'linear-gradient(135deg, #C96A4A, #A94D31)',
         border: 'none', cursor: 'pointer', fontSize: 22,
-        boxShadow: '0 8px 25px rgba(16,185,129,0.4)',
+        boxShadow: '0 14px 32px rgba(201,106,74,0.35)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700,
         transition: 'all 0.2s',

@@ -5,14 +5,14 @@ import ChatbotIA from '../components/ChatbotIA'
 import useMediaQuery from '../hooks/useMediaQuery'
 
 const DOMAINE_CONFIG = {
-  informatique: { icon: '💻', label: 'Informatique & Numérique', color: '#8C6FF7' },
+  informatique: { icon: '💻', label: 'Informatique & Numérique', color: '#2F5C7F' },
   sante:        { icon: '🏥', label: 'Santé & Médecine',         color: '#EF4444' },
   droit:        { icon: '⚖️', label: 'Droit & Sciences Politiques', color: '#C6A0FF' },
   economie:     { icon: '📊', label: 'Économie & Gestion',       color: '#C96A4A' },
   lettres:      { icon: '📖', label: 'Lettres & Sciences Humaines', color: '#f472b6' },
   agriculture:  { icon: '🌱', label: 'Agriculture & Environnement', color: '#84cc16' },
   sciences:     { icon: '⚗️', label: 'Sciences & Technologie',   color: '#D6A45B' },
-  education:    { icon: '🎓', label: 'Sciences de l\'Éducation', color: '#06b6d4' },
+  education:    { icon: '🎓', label: 'Sciences de l\'Éducation', color: '#6E9B73' },
   art:          { icon: '🎨', label: 'Arts & Communication',     color: '#fb923c' },
 }
 
@@ -47,11 +47,12 @@ export default function FilieresPage() {
   })
 
   return (
-    <div className="mesh-bg public-page-shell" style={{ minHeight: '100vh' }}>
+    <div className="public-page-shell">
       <Navbar />
 
       {/* Hero */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: isMobile ? '32px 14px 24px' : '48px 24px 32px', animation: 'slideUp 0.5s ease' }}>
+      <main className="public-page-main" style={{ animation: 'slideUp 0.5s ease' }}>
+        <section className="public-page-hero">
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           background: 'rgba(214,164,91,0.1)', border: '1px solid rgba(214,164,91,0.2)',
@@ -80,12 +81,11 @@ export default function FilieresPage() {
           <input
             type="text" placeholder="🔍 Rechercher une filière, un métier..."
             value={search} onChange={e => setSearch(e.target.value)}
+            className="public-page-input"
             style={{
               width: '100%', maxWidth: 460,
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12,
-              padding: '12px 16px', color: '#F7EFE8', fontSize: 14,
-              outline: 'none', fontFamily: 'Manrope, sans-serif',
+              fontSize: 14,
+              fontFamily: 'Manrope, sans-serif',
             }}
           />
         </div>
@@ -152,8 +152,8 @@ export default function FilieresPage() {
               return (
                 <div
                   key={f.id}
+                  className="public-page-card"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
                     border: `1px solid ${isExpanded ? cfg.color + '40' : 'rgba(255,255,255,0.07)'}`,
                     borderRadius: 18,
                     overflow: 'hidden',
@@ -260,8 +260,8 @@ export default function FilieresPage() {
                             </div>
                           )}
                           {f.taux_emploi && (
-                            <div style={{ background: 'rgba(140,111,247,0.08)', border: '1px solid rgba(140,111,247,0.15)', borderRadius: 10, padding: '12px' }}>
-                              <div style={{ fontSize: 10, color: '#8C6FF7', textTransform: 'uppercase', marginBottom: 3 }}>Taux d'emploi</div>
+                            <div style={{ background: 'rgba(47,92,127,0.08)', border: '1px solid rgba(47,92,127,0.15)', borderRadius: 10, padding: '12px' }}>
+                              <div style={{ fontSize: 10, color: '#2F5C7F', textTransform: 'uppercase', marginBottom: 3 }}>Taux d'emploi</div>
                               <div style={{ fontSize: 13, color: '#F7EFE8', fontWeight: 600 }}>{f.taux_emploi}% à 1 an</div>
                             </div>
                           )}
@@ -345,17 +345,18 @@ export default function FilieresPage() {
             })}
           </div>
         )}
-      </div>
+        </section>
+      </main>
 
       {/* FAB */}
       <button
         onClick={() => setChatOpen(prev => !prev)}
         style={{
           position: 'fixed', bottom: isMobile ? 96 : 24, right: isMobile ? 16 : 24, zIndex: 999,
-          width: isMobile ? 52 : 56, height: isMobile ? 52 : 56, borderRadius: '50%',
+          width: isMobile ? 52 : 56, height: isMobile ? 52 : 56, borderRadius: 18,
           background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
           border: 'none', cursor: 'pointer', fontSize: 24,
-          boxShadow: '0 8px 32px rgba(201,106,74,0.4)',
+          boxShadow: '0 14px 32px rgba(201,106,74,0.36)',
         }}
       >O+</button>
       <ChatbotIA isOpen={chatOpen} onClose={() => setChatOpen(false)} />
