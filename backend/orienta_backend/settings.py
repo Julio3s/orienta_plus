@@ -1,6 +1,7 @@
 import os
-from pathlib import Path
 from datetime import timedelta
+from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -8,9 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production-orienta-plus-2024')
-
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -106,28 +105,22 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = os.environ.get(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173'
+    'http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173',
 ).split(',')
-
 CORS_ALLOW_CREDENTIALS = True
 
-# ============================================================================
-# OPENAI (legacy - à déprécier)
-# ============================================================================
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', 'sk-your-openai-key-here')
-
-# ============================================================================
-# XAI / GROK Configuration (NOUVEAU)
-# ============================================================================
-XAI_API_KEY = os.environ.get('XAI_API_KEY', '')
-XAI_API_BASE = "https://api.x.ai/v1"
-XAI_MODEL = os.environ.get('XAI_MODEL', 'grok-beta')  # grok-beta, grok-2-latest, grok-2-1212
-XAI_MAX_TOKENS = int(os.environ.get('XAI_MAX_TOKENS', '1000'))
+# xAI / Grok configuration
+XAI_API_KEY = os.environ.get('XAI_API_KEY', '').strip()
+XAI_API_BASE = os.environ.get('XAI_API_BASE', 'https://api.x.ai/v1').rstrip('/')
+XAI_MODEL = os.environ.get('XAI_MODEL', 'grok-3-mini')
+XAI_MAX_TOKENS = int(os.environ.get('XAI_MAX_TOKENS', '800'))
 XAI_TEMPERATURE = float(os.environ.get('XAI_TEMPERATURE', '0.7'))
+XAI_REQUEST_TIMEOUT = float(os.environ.get('XAI_REQUEST_TIMEOUT', '30'))
+# Chat Completions est en general plus fiable que Responses sur l'endpoint xAI ; mettre True pour tester Responses.
+XAI_USE_RESPONSES_API = os.environ.get('XAI_USE_RESPONSES_API', 'False') == 'True'
+XAI_STORE_CONVERSATIONS = os.environ.get('XAI_STORE_CONVERSATIONS', 'False') == 'True'
 
-# ============================================================================
-# EMAIL Configuration
-# ============================================================================
+# Email configuration
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
@@ -138,15 +131,10 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '20'))
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'no-reply@orienta.plus')
 
-# ============================================================================
-# WhatsApp Configuration
-# ============================================================================
+# WhatsApp configuration
 WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN', '')
 WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID', '')
 
-# ============================================================================
-# LOGGING Configuration (optionnel)
-# ============================================================================
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -176,7 +164,7 @@ LOGGING = {
         'level': 'INFO',
     },
     'loggers': {
-        'orienta.services.grok_service': {
+        'orienta.grok_service': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,
@@ -184,7 +172,6 @@ LOGGING = {
     },
 }
 
-# Créer le dossier logs s'il n'existe pas
 LOGS_DIR = BASE_DIR / 'logs'
 if not LOGS_DIR.exists():
     LOGS_DIR.mkdir(parents=True)

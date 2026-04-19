@@ -1,9 +1,12 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.core import mail
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from .grok_service import REFUS_HORS_ORIENTATION, GrokService
 from .models import Matiere, SerieMatiere
 
 
@@ -160,3 +163,92 @@ class SimulationShareAPITests(APITestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn('ORIENTA+', mail.outbox[0].subject)
         self.assertIn('Biologie', mail.outbox[0].body)
+
+
+class GrokServiceScopeTests(SimpleTestCase):
+    def test_blocks_off_topic_without_calling_model(self):
+        svc = GrokService()
+        out = svc.get_response(
+            'Donne-moi la recette du gateau au chocolat',
+            historique=[],
+        )
+        self.assertEqual(out['source'], 'policy')
+        self.assertEqual(out['mode'], 'hors_orientation')
+        self.assertEqual(out['reponse'], REFUS_HORS_ORIENTATION)
+
+    @override_settings(XAI_API_KEY='')
+    def test_allows_follow_up_when_thread_has_orientation(self):
+        svc = GrokService()
+        hist = [
+            {'role': 'user', 'content': 'Quelles filieres en informatique au Benin ?'},
+            {'role': 'assistant', 'content': 'Tu peux regarder IFRI a l UAC...'},
+        ]
+        out = svc.get_response('Explique plus en deux phrases', historique=hist)
+        self.assertNotEqual(out['source'], 'policy')
+        self.assertEqual(out['source'], 'fallback')
+
+    @override_settings(XAI_API_KEY='')
+    def test_on_topic_without_key_uses_fallback(self):
+        svc = GrokService()
+        out = svc.get_response(
+            'Quelles universites pour le droit au Benin ?',
+            historique=[],
+        )
+        self.assertEqual(out['source'], 'fallback')
+
+
+class ChatbotAPITests(APITestCase):
+    @override_settings(XAI_API_KEY='')
+    def test_chatbot_returns_fallback_when_xai_is_not_configured(self):
+        response = self.client.post(
+            '/api/chatbot/',
+            {
+                'message': 'Bonjour',
+                'historique': [],
+                'context': {'serie': 'C'},
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['source'], 'fallback')
+        self.assertEqual(response.data['mode'], 'hors_ligne')
+
+    @override_settings(XAI_API_KEY='')
+    def test_chatbot_off_topic_returns_policy(self):
+        response = self.client.post(
+            '/api/chatbot/',
+            {
+                'message': 'Ecrit un script Python pour scraper ce site',
+                'historique': [],
+                'context': {},
+            },
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['source'], 'policy')
+        self.assertEqual(response.data['mode'], 'hors_orientation')
+
+    @patch('orienta.views.grok_service.get_response')
+    def test_chatbot_endpoint_uses_grok_service_payload(self, mock_get_response):
+        mock_get_response.return_value = {
+            'reponse': "Bonjour, je suis O+.",
+            'source': 'grok',
+            'mode': 'grok_xai_responses',
+            'model': 'grok-3-mini',
+        }
+
+        response = self.client.post(
+            '/api/chatbot/',
+            {
+                'message': 'Salut',
+                'historique': [{'role': 'assistant', 'content': 'Bonjour'}],
+                'context': {'serie': 'D', 'has_results': True},
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['source'], 'grok')
+        self.assertEqual(response.data['model'], 'grok-3-mini')
+        mock_get_response.assert_called_once()

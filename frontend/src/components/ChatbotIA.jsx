@@ -8,7 +8,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
     {
       role: 'assistant',
       content:
-        "👋 Bonjour ! Je suis **O+**, ton conseiller ORIENTA+ propulsé par **Grok** (xAI). Pose-moi toutes tes questions sur les filières, universités ou débouchés au Bénin !",
+        "👋 Bonjour ! Je suis **O+**, ton conseiller ORIENTA+ (Grok xAI). Je réponds **uniquement** aux questions d'**orientation scolaire et universitaire** au Bénin : filières, universités, bourses, parcours après le bac, métiers liés aux études…",
     },
   ])
   const [input, setInput] = useState('')
@@ -44,7 +44,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
       })
 
       // Vérifier si la réponse vient de Grok
-      if (data.source === 'grok') {
+      if (data.source === 'grok' || data.source === 'policy') {
         setIsGrokActive(true)
       } else if (data.source === 'fallback') {
         setIsGrokActive(false)
@@ -315,7 +315,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKey}
-          placeholder="Pose ta question à Grok..."
+          placeholder="Question d'orientation (filière, univ., bac…)…"
           rows={1}
           style={{
             flex: 1,
