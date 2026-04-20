@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from .algo import suggerer_filieres
-from .grok_service import grok_service
+from .groq_service import groq_service
 from .models import (
     Filiere,
     FiliereMatiere,
@@ -214,7 +214,7 @@ def chatbot_view(request):
     if not user_message:
         return Response({'error': 'Message vide'}, status=status.HTTP_400_BAD_REQUEST)
 
-    response_payload = grok_service.get_response(
+    response_payload = groq_service.get_response(
         message=user_message,
         contexte=context,
         historique=historique,

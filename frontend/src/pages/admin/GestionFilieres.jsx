@@ -3,6 +3,8 @@ import CRUDTable from '../../components/admin/CRUDTable'
 import { filieresAPI, matieresAPI, seriesAPI } from '../../api/client'
 import api from '../../api/client'
 import formatApiError from '../../api/formatApiError'
+import { FiFolder, FiInbox, FiSave, FiSearch, FiStar, FiUpload } from 'react-icons/fi'
+import { MdSchool } from 'react-icons/md'
 
 const DOMAINES = [
   { value: 'informatique', label: 'Informatique & Numérique' },
@@ -159,7 +161,7 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
           color: '#f87171', 
           fontSize: 13 
         }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -265,7 +267,10 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
         padding: '16px' 
       }}>
         <h4 style={{ margin: '0 0 12px', color: '#B7A7FF', fontSize: 13, fontWeight: 700 }}>
-          ⭐ Matières prioritaires (max 3)
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <FiStar size={14} />
+            Matières prioritaires (max 3)
+          </span>
         </h4>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {matieresPrio.map((matierePrio, index) => (
@@ -293,7 +298,7 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
           ))}
         </div>
         <p style={{ color: '#64748b', fontSize: 11, marginTop: 10, marginBottom: 0 }}>
-          💡 Sélectionnez les matières les plus importantes pour cette filière (ordre décroissant d'importance)
+          Sélectionnez les matières les plus importantes pour cette filière (ordre décroissant d'importance)
         </p>
       </div>
 
@@ -305,7 +310,7 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
         padding: '16px' 
       }}>
         <h4 style={{ margin: '0 0 12px', color: '#34d399', fontSize: 13, fontWeight: 700 }}>
-          📚 Séries de bac acceptées
+          Séries de bac acceptées
         </h4>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {allSeries.map((serie) => {
@@ -335,7 +340,7 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
           })}
         </div>
         <p style={{ color: '#64748b', fontSize: 11, marginTop: 10, marginBottom: 0 }}>
-          💡 Sélectionnez toutes les séries de bac qui peuvent accéder à cette filière
+          Sélectionnez toutes les séries de bac qui peuvent accéder à cette filière
         </p>
       </div>
 
@@ -355,7 +360,10 @@ function FiliereForm({ item, allMatieres, allSeries, onSave, onCancel }) {
             opacity: saving ? 0.7 : 1,
           }}
         >
-          {saving ? '💾 Sauvegarde...' : '💾 Sauvegarder la filière'}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <FiSave size={16} />
+            {saving ? 'Sauvegarde...' : 'Sauvegarder la filière'}
+          </span>
         </button>
         <button 
           onClick={onCancel} 
@@ -540,29 +548,36 @@ export default function GestionFilieres() {
       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div>
           <h1 style={{ margin: '0 0 4px', fontFamily: 'Fraunces, serif', fontWeight: 800, fontSize: 26, color: '#F7EFE8' }}>
-            🎓 Filières
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              <MdSchool size={22} />
+              Filières
+            </span>
           </h1>
           <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>
             {items.length} filière{items.length > 1 ? 's' : ''} configurée{items.length > 1 ? 's' : ''}
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="🔍 Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 10,
-              padding: '8px 14px',
-              color: '#F7EFE8',
-              fontSize: 13,
-              outline: 'none',
-              width: 220,
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <FiSearch size={16} color="#8B7669" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 10,
+                padding: '8px 14px',
+                paddingLeft: 38,
+                color: '#F7EFE8',
+                fontSize: 13,
+                outline: 'none',
+                width: 220,
+              }}
+            />
+          </div>
           <select
             value={filtreDomaine}
             onChange={(e) => setFiltreDomaine(e.target.value)}
@@ -577,7 +592,7 @@ export default function GestionFilieres() {
               cursor: 'pointer',
             }}
           >
-            <option value="tous">📂 Tous domaines</option>
+            <option value="tous">Tous domaines</option>
             {DOMAINES.map((domaine) => (
               <option key={domaine.value} value={domaine.value}>{domaine.label}</option>
             ))}
@@ -595,7 +610,8 @@ export default function GestionFilieres() {
             alignItems: 'center',
             gap: 8,
           }}>
-            📥 Import CSV
+            <FiUpload size={16} />
+            Import CSV
             <input type="file" accept=".csv" onChange={handleImportCSV} style={{ display: 'none' }} />
           </label>
         </div>

@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { filieresAPI } from '../api/client'
-import ChatbotIA from '../components/ChatbotIA'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { FiActivity, FiBookOpen, FiBriefcase, FiCpu, FiHeart, FiMonitor, FiPenTool, FiSearch, FiSun, FiTarget, FiTrendingUp, FiZap } from 'react-icons/fi'
+import { MdGavel } from 'react-icons/md'
 
 const DOMAINE_CONFIG = {
-  informatique: { icon: '💻', label: 'Informatique & Numérique', color: '#2F5C7F' },
-  sante:        { icon: '🏥', label: 'Santé & Médecine',         color: '#EF4444' },
-  droit:        { icon: '⚖️', label: 'Droit & Sciences Politiques', color: '#C6A0FF' },
-  economie:     { icon: '📊', label: 'Économie & Gestion',       color: '#C96A4A' },
-  lettres:      { icon: '📖', label: 'Lettres & Sciences Humaines', color: '#f472b6' },
-  agriculture:  { icon: '🌱', label: 'Agriculture & Environnement', color: '#84cc16' },
-  sciences:     { icon: '⚗️', label: 'Sciences & Technologie',   color: '#D6A45B' },
-  education:    { icon: '🎓', label: 'Sciences de l\'Éducation', color: '#6E9B73' },
-  art:          { icon: '🎨', label: 'Arts & Communication',     color: '#fb923c' },
+  informatique: { icon: FiMonitor, label: 'Informatique & Numérique', color: '#2F5C7F' },
+  sante:        { icon: FiHeart, label: 'Santé & Médecine',         color: '#EF4444' },
+  droit:        { icon: MdGavel, label: 'Droit & Sciences Politiques', color: '#C6A0FF' },
+  economie:     { icon: FiTrendingUp, label: 'Économie & Gestion',       color: '#C96A4A' },
+  lettres:      { icon: FiBookOpen, label: 'Lettres & Sciences Humaines', color: '#f472b6' },
+  agriculture:  { icon: FiSun, label: 'Agriculture & Environnement', color: '#84cc16' },
+  sciences:     { icon: FiZap, label: 'Sciences & Technologie',   color: '#D6A45B' },
+  education:    { icon: FiActivity, label: 'Sciences de l\'Éducation', color: '#6E9B73' },
+  art:          { icon: FiPenTool, label: 'Arts & Communication',     color: '#fb923c' },
 }
 
 export default function FilieresPage() {
@@ -24,7 +25,6 @@ export default function FilieresPage() {
   const [filtreduree, setFiltreduree] = useState('tous')
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState(null)
-  const [chatOpen, setChatOpen] = useState(false)
 
   useEffect(() => {
     filieresAPI.list()
@@ -58,7 +58,7 @@ export default function FilieresPage() {
           background: 'rgba(214,164,91,0.1)', border: '1px solid rgba(214,164,91,0.2)',
           borderRadius: 20, padding: '6px 16px', marginBottom: 20,
         }}>
-          <span style={{ fontSize: 12 }}>🎯</span>
+          <FiTarget size={14} color="#EDC98A" />
           <span style={{ color: '#EDC98A', fontSize: 13, fontWeight: 500 }}>Débouchés & Métiers concrets</span>
         </div>
         <h1 style={{
@@ -78,16 +78,20 @@ export default function FilieresPage() {
 
         {/* Search */}
         <div style={{ marginBottom: 20 }}>
-          <input
-            type="text" placeholder="🔍 Rechercher une filière, un métier..."
-            value={search} onChange={e => setSearch(e.target.value)}
-            className="public-page-input"
-            style={{
-              width: '100%', maxWidth: 460,
-              fontSize: 14,
-              fontFamily: 'Manrope, sans-serif',
-            }}
-          />
+          <div style={{ position: 'relative', width: '100%', maxWidth: 460 }}>
+            <FiSearch size={16} color="#8B7669" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text" placeholder="Rechercher une filière, un métier..."
+              value={search} onChange={e => setSearch(e.target.value)}
+              className="public-page-input"
+              style={{
+                width: '100%',
+                fontSize: 14,
+                fontFamily: 'Manrope, sans-serif',
+                paddingLeft: 40,
+              }}
+            />
+          </div>
         </div>
 
         {/* Filtres domaine */}
@@ -102,8 +106,18 @@ export default function FilieresPage() {
                 color: filtreDomaine === d ? (cfg?.color || '#C96A4A') : '#8B7669',
                 cursor: 'pointer', fontSize: 12.5, fontFamily: 'Manrope, sans-serif',
                 transition: 'all 0.15s',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
               }}>
-                {cfg ? `${cfg.icon} ${cfg.label}` : 'Tous les domaines'}
+                {cfg ? (
+                  <>
+                    <cfg.icon size={14} />
+                    <span>{cfg.label}</span>
+                  </>
+                ) : (
+                  'Tous les domaines'
+                )}
               </button>
             )
           })}
@@ -143,8 +157,8 @@ export default function FilieresPage() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {filtered.map((f, i) => {
-              const cfg = DOMAINE_CONFIG[f.domaine] || { icon: '🎓', color: '#C96A4A', label: f.domaine }
+              {filtered.map((f, i) => {
+              const cfg = DOMAINE_CONFIG[f.domaine] || { icon: FiCpu, color: '#C96A4A', label: f.domaine }
               const isExpanded = expanded === f.id
               const metiers = f.metiers_list || []
               const debouches = f.debouches_list || []
@@ -175,7 +189,9 @@ export default function FilieresPage() {
                       background: cfg.color + '15', border: `1px solid ${cfg.color}30`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 22,
-                    }}>{cfg.icon}</div>
+                    }}>
+                      <cfg.icon size={22} color={cfg.color} />
+                    </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 8 }}>
@@ -271,7 +287,10 @@ export default function FilieresPage() {
                         {metiers.length > 0 && (
                           <div>
                             <h4 style={{ margin: '0 0 10px', color: '#B59F90', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                              💼 Exemples de postes concrets
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                <FiBriefcase size={14} />
+                                Exemples de postes concrets
+                              </span>
                             </h4>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 8 }}>
                               {metiers.map((m, j) => (
@@ -326,17 +345,6 @@ export default function FilieresPage() {
                           </div>
                         )}
 
-                        <button
-                          onClick={() => setChatOpen(true)}
-                          style={{
-                            alignSelf: 'flex-start',
-                            background: 'rgba(201,106,74,0.1)', border: '1px solid rgba(201,106,74,0.2)',
-                            color: '#C96A4A', borderRadius: 10, padding: '9px 18px',
-                            cursor: 'pointer', fontSize: 13, fontFamily: 'Manrope, sans-serif',
-                          }}
-                        >
-                          O+ Poser une question sur cette filiere
-                        </button>
                       </div>
                     </div>
                   )}
@@ -347,19 +355,6 @@ export default function FilieresPage() {
         )}
         </section>
       </main>
-
-      {/* FAB */}
-      <button
-        onClick={() => setChatOpen(prev => !prev)}
-        style={{
-          position: 'fixed', bottom: isMobile ? 96 : 24, right: isMobile ? 16 : 24, zIndex: 999,
-          width: isMobile ? 52 : 56, height: isMobile ? 52 : 56, borderRadius: 18,
-          background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-          border: 'none', cursor: 'pointer', fontSize: 24,
-          boxShadow: '0 14px 32px rgba(201,106,74,0.36)',
-        }}
-      >O+</button>
-      <ChatbotIA isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   )
 }

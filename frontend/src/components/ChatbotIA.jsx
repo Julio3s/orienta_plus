@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { chatbotAPI } from '../api/client'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { useTheme } from '../theme/ThemeProvider'
 
 export default function ChatbotIA({ context = {}, isOpen, onClose }) {
   const isMobile = useMediaQuery('(max-width: 767px)')
+  const { isLight } = useTheme()
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
       content:
-        "👋 Bonjour ! Je suis **O+**, ton conseiller ORIENTA+ (Grok xAI). Je réponds **uniquement** aux questions d'**orientation scolaire et universitaire** au Bénin : filières, universités, bourses, parcours après le bac, métiers liés aux études…",
+        "Bonjour ! Je suis **O+**, ton conseiller ORIENTA+. Je reponds uniquement aux questions d'orientation universitaire et post-bac au Benin : filieres, universites, bourses, parcours apres le bac et metiers lies aux etudes.",
     },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [isGrokActive, setIsGrokActive] = useState(true)
+  const [isAiOnline, setIsAiOnline] = useState(true)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -39,28 +41,28 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
     try {
       const { data } = await chatbotAPI.envoyer({
         message: text,
-        historique: messages.slice(-6), // Envoyer l'historique pour contexte
+        historique: messages.slice(-6),
         context,
       })
 
-      // Vérifier si la réponse vient de Grok
-      if (data.source === 'grok' || data.source === 'policy') {
-        setIsGrokActive(true)
+      if (data.source === 'groq' || data.source === 'policy') {
+        setIsAiOnline(true)
       } else if (data.source === 'fallback') {
-        setIsGrokActive(false)
+        setIsAiOnline(false)
       }
 
       setMessages((prev) => [...prev, { role: 'assistant', content: data.reponse }])
     } catch (error) {
-      console.error('Erreur Grok:', error)
+      console.error('Erreur assistant IA:', error)
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: "⚠️ Désolé, je rencontre une difficulté technique avec Grok. Réessaie dans un instant ou reformule ta question.",
+          content:
+            "Desole, je rencontre une difficulte technique. Reessaie dans un instant ou reformule ta question d'orientation.",
         },
       ])
-      setIsGrokActive(false)
+      setIsAiOnline(false)
     } finally {
       setLoading(false)
     }
@@ -74,12 +76,12 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
   }
 
   const suggestions = [
-    '🎓 Quelles sont les meilleures filières en informatique au Bénin ?',
-    '💰 Comment obtenir une bourse universitaire ?',
-    '🏛️ Quelle est la différence entre UAC et UNSTIM ?',
-    '🔬 Quels métiers après un BAC C ?',
-    '📚 Quelles études pour devenir médecin ?',
-    '💻 Formation en cybersécurité au Bénin ?',
+    'Quelles sont les meilleures filieres en informatique au Benin ?',
+    'Comment obtenir une bourse universitaire ?',
+    'Quelle est la difference entre UAC et UNSTIM ?',
+    'Quels metiers apres un BAC C ?',
+    'Quelles etudes pour devenir medecin ?',
+    'Formation en cybersecurite au Benin ?',
   ]
 
   if (!isOpen) return null
@@ -94,18 +96,19 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
         zIndex: 1000,
         width: isMobile ? 'auto' : 'min(440px, calc(100vw - 48px))',
         height: isMobile ? 'min(68vh, 560px)' : 540,
-        background: 'rgba(10,10,15,0.98)',
-        border: '1px solid rgba(16,185,129,0.25)',
+        background: isLight ? 'rgba(255,255,255,0.96)' : 'rgba(10,10,15,0.98)',
+        border: isLight ? '1px solid rgba(15,23,42,0.12)' : '1px solid rgba(201,106,74,0.22)',
         borderRadius: isMobile ? 24 : 20,
         display: 'flex',
         flexDirection: 'column',
-        backdropFilter: 'blur(20px)',
-        boxShadow: '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(16,185,129,0.1)',
+        backdropFilter: isLight ? 'none' : 'blur(20px)',
+        boxShadow: isLight
+          ? '0 18px 50px rgba(15,23,42,0.14), 0 0 0 1px rgba(15,23,42,0.06)'
+          : '0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,106,74,0.08)',
         overflow: 'hidden',
         animation: 'scaleIn 0.25s ease',
       }}
     >
-      {/* En-tête */}
       <div
         style={{
           padding: '16px 20px',
@@ -113,7 +116,9 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.04))',
+          background: isLight
+            ? 'linear-gradient(135deg, rgba(47,92,127,0.10), rgba(184,91,61,0.06))'
+            : 'linear-gradient(135deg, rgba(201,106,74,0.10), rgba(47,92,127,0.05))',
         }}
       >
         <div
@@ -121,7 +126,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
             width: 40,
             height: 40,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10B981, #059669)',
+            background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -136,20 +141,27 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
 
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <div style={{ color: '#F7EFE8', fontWeight: 600, fontSize: 15, fontFamily: 'Fraunces, serif' }}>
+            <div
+              style={{
+                color: isLight ? 'var(--text-strong)' : '#F7EFE8',
+                fontWeight: 600,
+                fontSize: 15,
+                fontFamily: 'Fraunces, serif',
+              }}
+            >
               O+ Assistant
             </div>
             <div
               style={{
                 fontSize: 10,
-                background: isGrokActive ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)',
+                background: isAiOnline ? 'rgba(201,106,74,0.16)' : 'rgba(214,164,91,0.16)',
                 padding: '2px 8px',
                 borderRadius: 20,
-                color: isGrokActive ? '#10B981' : '#F59E0B',
-                fontWeight: 500,
+                color: 'var(--brand-tertiary-soft)',
+                fontWeight: 600,
               }}
             >
-              {isGrokActive ? '🚀 Grok xAI' : '⚠️ Mode hors ligne'}
+              {isAiOnline ? 'Groq' : 'Mode hors ligne'}
             </div>
           </div>
           <div style={{ color: '#64748b', fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -158,7 +170,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
                 width: 6,
                 height: 6,
                 borderRadius: '50%',
-                background: '#10B981',
+                background: 'var(--brand-primary)',
                 display: 'inline-block',
                 animation: 'pulse 1.5s infinite',
               }}
@@ -183,14 +195,13 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
             justifyContent: 'center',
             transition: 'all 0.2s',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
         >
-          ✕
+          x
         </button>
       </div>
 
-      {/* Messages */}
       <div
         style={{
           flex: 1,
@@ -217,12 +228,14 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
                   message.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
                 background:
                   message.role === 'user'
-                    ? 'linear-gradient(135deg, #10B981, #059669)'
-                    : 'rgba(255,255,255,0.05)',
-                color: '#F7EFE8',
+                    ? 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))'
+                    : isLight
+                      ? 'rgba(15,23,42,0.06)'
+                      : 'rgba(255,255,255,0.05)',
+                color: message.role === 'user' ? '#fff' : isLight ? 'var(--text-strong)' : '#F7EFE8',
                 fontSize: 13.5,
                 lineHeight: 1.55,
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
               }}
@@ -239,7 +252,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: '#10B981',
+                background: 'var(--brand-primary)',
                 animation: 'bounce 1.4s ease-in-out 0s infinite',
               }}
             />
@@ -248,7 +261,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: '#10B981',
+                background: 'var(--brand-primary)',
                 animation: 'bounce 1.4s ease-in-out 0.2s infinite',
               }}
             />
@@ -257,7 +270,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
-                background: '#10B981',
+                background: 'var(--brand-primary)',
                 animation: 'bounce 1.4s ease-in-out 0.4s infinite',
               }}
             />
@@ -267,31 +280,30 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Suggestions (seulement si peu de messages) */}
       {messages.length <= 2 && (
         <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {suggestions.map((suggestion, index) => (
             <button
               key={index}
-              onClick={() => setInput(suggestion.replace(/^[🎓💰🏛️🔬📚💻]\s*/, ''))}
+              onClick={() => setInput(suggestion)}
               style={{
-                background: 'rgba(16,185,129,0.08)',
-                border: '1px solid rgba(16,185,129,0.2)',
-                color: '#34d399',
+                background: 'rgba(201,106,74,0.08)',
+                border: '1px solid rgba(201,106,74,0.2)',
+                color: 'var(--brand-tertiary-soft)',
                 borderRadius: 20,
                 padding: '6px 14px',
                 fontSize: 12,
                 cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'Manrope, sans-serif',
                 transition: 'all 0.15s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(16,185,129,0.15)'
-                e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'
+                e.currentTarget.style.background = 'rgba(201,106,74,0.13)'
+                e.currentTarget.style.borderColor = 'rgba(201,106,74,0.3)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(16,185,129,0.08)'
-                e.currentTarget.style.borderColor = 'rgba(16,185,129,0.2)'
+                e.currentTarget.style.background = 'rgba(201,106,74,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(201,106,74,0.2)'
               }}
             >
               {suggestion}
@@ -300,14 +312,13 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
         </div>
       )}
 
-      {/* Input */}
       <div
         style={{
           padding: '12px 16px',
           borderTop: '1px solid rgba(255,255,255,0.06)',
           display: 'flex',
           gap: 10,
-          background: 'rgba(0,0,0,0.2)',
+          background: isLight ? 'rgba(15,23,42,0.03)' : 'rgba(0,0,0,0.2)',
         }}
       >
         <textarea
@@ -315,29 +326,29 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={handleKey}
-          placeholder="Question d'orientation (filière, univ., bac…)…"
+          placeholder="Question d'orientation universitaire (filiere, univ., bac...)..."
           rows={1}
           style={{
             flex: 1,
             resize: 'none',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            background: isLight ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.05)',
+            border: isLight ? '1px solid rgba(15,23,42,0.14)' : '1px solid rgba(255,255,255,0.1)',
             borderRadius: 14,
             padding: '10px 16px',
-            color: '#F7EFE8',
+            color: isLight ? 'var(--text-strong)' : '#F7EFE8',
             fontSize: 13.5,
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'Manrope, sans-serif',
             outline: 'none',
             lineHeight: 1.4,
             transition: 'all 0.2s',
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = '#10B981'
-            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+            e.currentTarget.style.borderColor = isLight ? 'rgba(47,92,127,0.34)' : 'var(--brand-primary)'
+            e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.98)' : 'rgba(255,255,255,0.08)'
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-            e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+            e.currentTarget.style.borderColor = isLight ? 'rgba(15,23,42,0.14)' : 'rgba(255,255,255,0.1)'
+            e.currentTarget.style.background = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.05)'
           }}
         />
         <button
@@ -348,7 +359,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
             height: 44,
             borderRadius: 14,
             background: input.trim()
-              ? 'linear-gradient(135deg, #10B981, #059669)'
+              ? 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))'
               : 'rgba(255,255,255,0.05)',
             border: 'none',
             cursor: input.trim() ? 'pointer' : 'not-allowed',
@@ -370,7 +381,7 @@ export default function ChatbotIA({ context = {}, isOpen, onClose }) {
             e.currentTarget.style.transform = 'scale(1)'
           }}
         >
-          {loading ? '...' : '→'}
+          {loading ? '...' : '->'}
         </button>
       </div>
 

@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import ScrollToTop from './components/ScrollToTop'
 import HomePage from './pages/HomePage'
+import AssistantPage from './pages/AssistantPage'
 import EspaceEtudiant from './pages/EspaceEtudiant'
 import UniversitesPage from './pages/UniversitesPage'
 import FilieresPage from './pages/FilieresPage'
@@ -19,6 +20,7 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/assistant" element={<AssistantPage />} />
         <Route path="/orientation" element={<EspaceEtudiant />} />
         <Route path="/universites" element={<UniversitesPage />} />
         <Route path="/filieres" element={<FilieresPage />} />

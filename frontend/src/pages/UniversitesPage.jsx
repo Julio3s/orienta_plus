@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { universitesAPI, filieresAPI } from '../api/client'
-import ChatbotIA from '../components/ChatbotIA'
-import useMediaQuery from '../hooks/useMediaQuery'
 
 const VILLES = ['Toutes', 'Cotonou', 'Abomey-Calavi', 'Parakou', 'Abomey', 'Porto-Novo']
 const TYPE_LABELS = {
@@ -12,7 +10,6 @@ const TYPE_LABELS = {
 }
 
 export default function UniversitesPage() {
-  const isMobile = useMediaQuery('(max-width: 767px)')
   const [universites, setUniversites] = useState([])
   const [filieres, setFilieres] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,7 +17,6 @@ export default function UniversitesPage() {
   const [filtreType, setFiltreType] = useState('tous')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
-  const [chatOpen, setChatOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([universitesAPI.list(), filieresAPI.list()])
@@ -431,30 +427,6 @@ export default function UniversitesPage() {
           </div>
         </section>
       </main>
-
-      <button
-        onClick={() => setChatOpen((prev) => !prev)}
-        style={{
-          position: 'fixed',
-          bottom: isMobile ? 96 : 24,
-          right: isMobile ? 16 : 24,
-          zIndex: 999,
-          width: isMobile ? 52 : 56,
-          height: isMobile ? 52 : 56,
-          borderRadius: 18,
-          background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: 16,
-          fontWeight: 700,
-          color: '#fff',
-          boxShadow: '0 14px 32px rgba(201,106,74,0.36)',
-        }}
-      >
-        O+
-      </button>
-
-      <ChatbotIA isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   )
 }

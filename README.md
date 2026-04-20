@@ -5,7 +5,7 @@ Plateforme d'orientation universitaire pour les bacheliers beninois.
 ORIENTA+ combine :
 - un backend Django REST pour les donnees, suggestions et endpoints admin,
 - un frontend React/Vite pour l'experience utilisateur,
-- une integration xAI/Grok pour le chatbot O+.
+- une integration Groq pour le chatbot O+.
 
 ## Stack technique
 
@@ -14,7 +14,7 @@ ORIENTA+ combine :
 | Backend | Django 4.2, Django REST Framework, SimpleJWT |
 | Base de donnees | PostgreSQL |
 | Frontend | React 18, Vite, Tailwind CSS |
-| IA | xAI Grok via SDK OpenAI-compatible |
+| IA | Groq |
 
 ## Structure du projet
 
@@ -42,7 +42,7 @@ orienta_plus/
 - Simulation d'orientation selon la serie et les notes.
 - Consultation des filieres, universites et seuils.
 - Espace admin securise par JWT.
-- Chatbot O+ branche sur Grok avec fallback hors ligne si xAI est indisponible.
+- Chatbot O+ branche sur Groq avec fallback hors ligne si le service IA est indisponible.
 - Envoi des resultats par email ou WhatsApp selon la configuration.
 
 ## Installation
@@ -104,9 +104,9 @@ DB_PASSWORD=change-me
 DB_HOST=localhost
 DB_PORT=5432
 
-XAI_API_KEY=xai-votre-cle-ici
-XAI_API_BASE=https://api.x.ai/v1
-XAI_MODEL=grok-3-mini
+GROQ_API_KEY=gsk_votre_cle_ici
+GROQ_API_BASE=https://api.groq.com/openai/v1
+GROQ_MODEL=llama-3.1-8b-instant
 ```
 
 Lancement :
@@ -143,27 +143,27 @@ npm run dev
 
 Par defaut, `VITE_API_URL` peut rester vide en developpement si le proxy Vite est utilise.
 
-## Integration IA Grok
+## Integration IA Groq
 
-L'integration du chatbot utilise maintenant une configuration xAI coherente sur tout le projet :
+L'integration du chatbot utilise maintenant une configuration Groq coherente sur tout le projet :
 
-- `XAI_API_KEY` pour la cle API.
-- `XAI_API_BASE` pour l'endpoint xAI, par defaut `https://api.x.ai/v1`.
-- `XAI_MODEL` pour choisir le modele, par defaut `grok-3-mini`.
-- `XAI_USE_RESPONSES_API=True` pour privilegier la Responses API.
+- `GROQ_API_KEY` pour la cle API.
+- `GROQ_API_BASE` pour l'endpoint Groq.
+- `GROQ_MODEL` pour choisir le modele, par defaut `llama-3.1-8b-instant`.
+- `GROQ_USE_RESPONSES_API=False` par defaut, avec fallback vers `chat.completions`.
 - fallback automatique vers `chat.completions` si necessaire.
-- fallback hors ligne si la cle manque ou si xAI est temporairement indisponible.
+- fallback hors ligne si la cle manque ou si Groq est temporairement indisponible.
 
-Le service central du chatbot se trouve dans `backend/orienta/grok_service.py`.
+Le service central du chatbot se trouve dans `backend/orienta/groq_service.py`.
 
-Pour tester rapidement la connexion a Grok :
+Pour tester rapidement la connexion a Groq :
 
 ```bash
 cd backend
-python test_grok.py
+python test_groq.py
 ```
 
-Ce script lit directement `XAI_API_KEY`, `XAI_API_BASE` et `XAI_MODEL` depuis l'environnement.
+Ce script lit directement `GROQ_API_KEY`, `GROQ_API_BASE` et `GROQ_MODEL` depuis l'environnement.
 
 ## Jeux de donnees
 
@@ -207,9 +207,9 @@ DB_USER=...
 DB_PASSWORD=...
 DB_HOST=...
 DB_PORT=5432
-XAI_API_KEY=xai-votre-cle
-XAI_API_BASE=https://api.x.ai/v1
-XAI_MODEL=grok-3-mini
+GROQ_API_KEY=gsk_votre_cle
+GROQ_API_BASE=https://api.groq.com/openai/v1
+GROQ_MODEL=llama-3.1-8b-instant
 ```
 
 Build frontend :
@@ -223,4 +223,4 @@ npm run build
 
 - Ministere de l'Enseignement Superieur et de la Recherche Scientifique : https://www.mesrs.bj
 - ANIP Benin : https://www.anipbenin.bj
-- Documentation xAI : https://docs.x.ai
+- Documentation Groq : https://console.groq.com/docs

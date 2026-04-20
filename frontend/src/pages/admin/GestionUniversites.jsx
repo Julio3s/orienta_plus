@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import CRUDTable from '../../components/admin/CRUDTable'
 import { universitesAPI } from '../../api/client'
 import formatApiError from '../../api/formatApiError'
+import { FiMapPin, FiSave, FiSearch } from 'react-icons/fi'
+import { MdAccountBalance } from 'react-icons/md'
 
 const FIELD_DEF = [
   { key: 'nom',           label: 'Nom complet',        type: 'text',     placeholder: 'Université d\'Abomey-Calavi', full: true },
@@ -114,7 +116,12 @@ function UniversiteForm({ item, onSave, onCancel }) {
           background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)', border: 'none',
           color: '#fff', borderRadius: 10, padding: '10px 22px', cursor: 'pointer',
           fontWeight: 700, fontSize: 13, fontFamily: 'Fraunces, serif',
-        }}>{saving ? '...' : '💾 Sauvegarder'}</button>
+        }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            <FiSave size={16} />
+            {saving ? '...' : 'Sauvegarder'}
+          </span>
+        </button>
         <button onClick={onCancel} style={{
           background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
           color: '#B59F90', borderRadius: 10, padding: '10px 18px', cursor: 'pointer', fontSize: 13,
@@ -150,7 +157,10 @@ export default function GestionUniversites() {
         <div style={{ color: '#F7EFE8', fontSize: 13, fontWeight: 600, fontFamily: 'Manrope' }}>
           {u.nom.length > 50 ? u.nom.slice(0, 50) + '…' : u.nom}
         </div>
-        <div style={{ color: '#8B7669', fontSize: 11, marginTop: 2 }}>📍 {u.ville}</div>
+        <div style={{ color: '#8B7669', fontSize: 11, marginTop: 2, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <FiMapPin size={13} />
+          {u.ville}
+        </div>
       </div>
     )},
     { key: 'est_publique', label: 'Type', width: '80px', render: u => (
@@ -170,19 +180,25 @@ export default function GestionUniversites() {
       <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <div>
           <h1 style={{ margin: '0 0 4px', fontFamily: 'Fraunces, serif', fontWeight: 800, fontSize: 26, color: '#F7EFE8' }}>
-            🏛️ Universités
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+              <MdAccountBalance size={22} />
+              Universités
+            </span>
           </h1>
           <p style={{ margin: 0, color: '#8B7669', fontSize: 13 }}>{items.length} universités enregistrées</p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <input
-            type="text" placeholder="🔍 Rechercher..."
-            value={search} onChange={e => setSearch(e.target.value)}
-            style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 10, padding: '8px 14px', color: '#F7EFE8', fontSize: 13, outline: 'none', width: 200,
-            }}
-          />
+          <div style={{ position: 'relative' }}>
+            <FiSearch size={16} color="#8B7669" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} />
+            <input
+              type="text" placeholder="Rechercher..."
+              value={search} onChange={e => setSearch(e.target.value)}
+              style={{
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 10, padding: '8px 14px', paddingLeft: 38, color: '#F7EFE8', fontSize: 13, outline: 'none', width: 200,
+              }}
+            />
+          </div>
           {['tous', 'public', 'privé'].map(t => (
             <button key={t} onClick={() => setFiltreType(t)} style={{
               padding: '8px 14px', borderRadius: 10, cursor: 'pointer', fontSize: 12,

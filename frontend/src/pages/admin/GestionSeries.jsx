@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import CRUDTable from '../../components/admin/CRUDTable'
 import { matieresAPI, seriesAPI } from '../../api/client'
 import formatApiError from '../../api/formatApiError'
+import { HiOutlineClipboardList } from 'react-icons/hi'
 
 const createEmptyMatiereRow = () => ({ matiere_id: '', coefficient: 1 })
 
@@ -392,7 +393,7 @@ export default function GestionSeries() {
   return (
     <CRUDTable
       title="Series de bac"
-      icon="📋"
+      icon={<HiOutlineClipboardList size={22} style={{ marginRight: 10, verticalAlign: '-4px' }} />}
       items={items}
       columns={columns}
       loading={loading}

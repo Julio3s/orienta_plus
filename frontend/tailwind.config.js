@@ -5,12 +5,12 @@ export default {
     extend: {
       colors: {
         brand: {
-          green: '#10B981',
-          blue: '#3B82F6',
-          orange: '#F59E0B',
-          red: '#EF4444',
-          dark: '#0F172A',
-          darker: '#020617',
+          primary: 'var(--brand-primary)',
+          primaryDeep: 'var(--brand-primary-deep)',
+          secondary: 'var(--brand-secondary)',
+          secondarySoft: 'var(--brand-secondary-soft)',
+          tertiary: 'var(--brand-tertiary)',
+          tertiarySoft: 'var(--brand-tertiary-soft)',
         }
       },
       fontFamily: {

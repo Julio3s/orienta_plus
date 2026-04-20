@@ -1,5 +1,8 @@
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { FiGlobe, FiLogOut, FiMenu, FiX } from 'react-icons/fi'
+import { MdAccountBalance, MdDashboard, MdMenuBook, MdSchool, MdShowChart } from 'react-icons/md'
+import { HiOutlineClipboardList } from 'react-icons/hi'
 import AdminDashboard from './AdminDashboard'
 import GestionSeries from './GestionSeries'
 import GestionMatieres from './GestionMatieres'
@@ -7,19 +10,21 @@ import GestionUniversites from './GestionUniversites'
 import GestionFilieres from './GestionFilieres'
 import GestionSeuils from './GestionSeuils'
 import ThemeToggle from '../../components/ThemeToggle'
+import { useTheme } from '../../theme/ThemeProvider'
 
 const NAV = [
-  { to: '/admin', label: 'Dashboard', icon: '📊', exact: true },
-  { to: '/admin/series', label: 'Séries', icon: '📋' },
-  { to: '/admin/matieres', label: 'Matières', icon: '📚' },
-  { to: '/admin/universites', label: 'Universités', icon: '🏛️' },
-  { to: '/admin/filieres', label: 'Filières', icon: '🎓' },
-  { to: '/admin/seuils', label: 'Seuils', icon: '📈' },
+  { to: '/admin', label: 'Dashboard', icon: MdDashboard, exact: true },
+  { to: '/admin/series', label: 'Séries', icon: HiOutlineClipboardList },
+  { to: '/admin/matieres', label: 'Matières', icon: MdMenuBook },
+  { to: '/admin/universites', label: 'Universités', icon: MdAccountBalance },
+  { to: '/admin/filieres', label: 'Filières', icon: MdSchool },
+  { to: '/admin/seuils', label: 'Seuils', icon: MdShowChart },
 ]
 
 export default function AdminLayout() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { isLight } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
@@ -51,13 +56,13 @@ export default function AdminLayout() {
   // Version mobile : sidebar en overlay
   if (isMobile) {
     return (
-      <div className="mesh-bg-admin" style={{ minHeight: '100vh', background: '#0a0a0f' }}>
+      <div className="mesh-bg-admin" style={{ minHeight: '100vh', background: 'var(--bg-base)' }}>
         {/* Barre d'en-tête mobile */}
         <div style={{
           position: 'sticky', top: 0, zIndex: 100,
-          background: 'rgba(10,10,15,0.95)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: isLight ? 'rgba(255,255,255,0.95)' : 'rgba(10,10,15,0.95)',
+          backdropFilter: isLight ? 'none' : 'blur(12px)',
+          borderBottom: isLight ? '1px solid rgba(15,23,42,0.08)' : '1px solid rgba(255,255,255,0.06)',
           padding: '12px 16px',
           display: 'flex',
           alignItems: 'center',
@@ -75,13 +80,13 @@ export default function AdminLayout() {
                 cursor: 'pointer',
               }}
             >
-              <span style={{ fontSize: 20 }}>☰</span>
+              <FiMenu size={20} color="#94a3b8" />
             </button>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{
                   width: 32, height: 32, borderRadius: 8,
-                  background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)',
+                  background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: 'Fraunces, serif', fontWeight: 800, color: '#fff', fontSize: 12,
                 }}>O+</div>
@@ -110,9 +115,9 @@ export default function AdminLayout() {
             <div style={{
               position: 'fixed', top: 0, left: 0, bottom: 0,
               width: '75%', maxWidth: 280,
-              background: 'rgba(10,10,15,0.98)',
-              backdropFilter: 'blur(16px)',
-              borderRight: '1px solid rgba(255,255,255,0.06)',
+              background: isLight ? 'rgba(255,255,255,0.98)' : 'rgba(10,10,15,0.98)',
+              backdropFilter: isLight ? 'none' : 'blur(16px)',
+              borderRight: isLight ? '1px solid rgba(15,23,42,0.10)' : '1px solid rgba(255,255,255,0.06)',
               zIndex: 201,
               display: 'flex', flexDirection: 'column',
               animation: 'slideIn 0.3s ease',
@@ -126,7 +131,7 @@ export default function AdminLayout() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div style={{
                     width: 36, height: 36, borderRadius: 10,
-                    background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)',
+                    background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontFamily: 'Fraunces, serif', fontWeight: 800, color: '#fff', fontSize: 14,
                   }}>O+</div>
@@ -134,7 +139,7 @@ export default function AdminLayout() {
                     <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 14, color: '#F7EFE8' }}>
                       ORIENTA+
                     </div>
-                    <div style={{ fontSize: 10, color: '#8C6FF7', fontWeight: 500 }}>Admin</div>
+                    <div style={{ fontSize: 10, color: 'var(--brand-tertiary-soft)', fontWeight: 600 }}>Admin</div>
                   </div>
                 </div>
                 <button
@@ -149,13 +154,14 @@ export default function AdminLayout() {
                     color: '#94a3b8',
                   }}
                 >
-                  ✕
+                  <FiX size={18} />
                 </button>
               </div>
 
               {/* Navigation mobile */}
               <nav style={{ flex: 1, padding: '16px 12px' }}>
                 {NAV.map(item => {
+                  const Icon = item.icon
                   const active = activeLink(item)
                   return (
                     <Link
@@ -166,14 +172,14 @@ export default function AdminLayout() {
                         display: 'flex', alignItems: 'center', gap: 12,
                         padding: '12px 14px', borderRadius: 12, marginBottom: 4,
                         textDecoration: 'none',
-                        background: active ? 'rgba(140,111,247,0.15)' : 'transparent',
-                        border: `1px solid ${active ? 'rgba(140,111,247,0.3)' : 'transparent'}`,
-                        color: active ? '#B7A7FF' : '#8B7669',
+                        background: active ? 'rgba(201,106,74,0.12)' : 'transparent',
+                        border: `1px solid ${active ? 'rgba(201,106,74,0.22)' : 'transparent'}`,
+                        color: active ? 'var(--brand-tertiary-soft)' : 'var(--text-faint)',
                         fontSize: 14, fontFamily: 'Manrope, sans-serif', fontWeight: 500,
                         transition: 'all 0.15s',
                       }}
                     >
-                      <span style={{ fontSize: 18 }}>{item.icon}</span>
+                      <Icon size={18} />
                       {item.label}
                     </Link>
                   )
@@ -193,7 +199,7 @@ export default function AdminLayout() {
                     fontFamily: 'Manrope, sans-serif',
                   }}
                 >
-                  <span>🌐</span> Voir le site public
+                  <FiGlobe size={16} /> Voir le site public
                 </a>
                 <button onClick={logout} style={{
                   width: '100%', display: 'flex', alignItems: 'center', gap: 12,
@@ -202,7 +208,7 @@ export default function AdminLayout() {
                   color: '#f87171', fontSize: 13, cursor: 'pointer',
                   fontFamily: 'Manrope, sans-serif', textAlign: 'left',
                 }}>
-                  <span>🚪</span> Déconnexion
+                  <FiLogOut size={16} /> Déconnexion
                 </button>
               </div>
             </div>
@@ -233,7 +239,7 @@ export default function AdminLayout() {
 
   // Version desktop : sidebar fixe
   return (
-    <div className="mesh-bg-admin" style={{ minHeight: '100vh', display: 'flex', background: '#0a0a0f' }}>
+    <div className="mesh-bg-admin" style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-base)' }}>
       {/* Sidebar Desktop */}
       <div style={{
         width: isCollapsed ? 80 : 260, flexShrink: 0,
@@ -256,7 +262,7 @@ export default function AdminLayout() {
               <div style={{
                 width: 40, height: 40, borderRadius: 12,
                 flexShrink: 0,
-                background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)',
+                background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontFamily: 'Fraunces, serif', fontWeight: 800, color: '#fff', fontSize: 16,
               }}>O+</div>
@@ -265,7 +271,7 @@ export default function AdminLayout() {
                   <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 700, fontSize: 16, color: '#F7EFE8' }}>
                     ORIENTA+
                   </div>
-                  <div style={{ fontSize: 11, color: '#8C6FF7', fontWeight: 500 }}>Administration</div>
+                  <div style={{ fontSize: 11, color: 'var(--brand-tertiary-soft)', fontWeight: 600 }}>Administration</div>
                 </div>
               )}
             </div>
@@ -288,19 +294,20 @@ export default function AdminLayout() {
         {/* Nav links desktop */}
         <nav style={{ flex: 1, padding: '16px 10px' }}>
           {NAV.map(item => {
+            const Icon = item.icon
             const active = activeLink(item)
             return (
               <Link key={item.to} to={item.to} title={isCollapsed ? item.label : ''} style={{
                 display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start', gap: 12,
                 padding: '10px 14px', borderRadius: 10, marginBottom: 4,
                 textDecoration: 'none',
-                background: active ? 'rgba(140,111,247,0.12)' : 'transparent',
-                border: `1px solid ${active ? 'rgba(140,111,247,0.25)' : 'transparent'}`,
-                color: active ? '#B7A7FF' : '#94a3b8',
+                background: active ? 'rgba(201,106,74,0.12)' : 'transparent',
+                border: `1px solid ${active ? 'rgba(201,106,74,0.22)' : 'transparent'}`,
+                color: active ? 'var(--brand-tertiary-soft)' : '#94a3b8',
                 fontSize: 14, fontFamily: 'Manrope, sans-serif', fontWeight: 500,
                 transition: 'all 0.15s',
               }}>
-                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <Icon size={18} />
                 {!isCollapsed && <span style={{ animation: 'fadeIn 0.2s ease' }}>{item.label}</span>}
               </Link>
             )
@@ -320,7 +327,7 @@ export default function AdminLayout() {
               fontFamily: 'Manrope, sans-serif', transition: 'all 0.15s',
             }}
           >
-            <span>🌐</span> {!isCollapsed && "Voir le site public"}
+            <FiGlobe size={16} /> {!isCollapsed && "Voir le site public"}
           </a>
           <button onClick={logout} style={{
             width: '100%', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start', gap: 12,
@@ -330,7 +337,7 @@ export default function AdminLayout() {
             fontFamily: 'Manrope, sans-serif', textAlign: 'left',
             transition: 'all 0.15s',
           }}>
-            <span>🚪</span> {!isCollapsed && "Déconnexion"}
+            <FiLogOut size={16} /> {!isCollapsed && "Déconnexion"}
           </button>
         </div>
       </div>

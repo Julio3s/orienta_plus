@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { statsAPI } from '../../api/client'
+import { FiBarChart2, FiClipboard, FiMapPin } from 'react-icons/fi'
+import { MdAccountBalance, MdChecklist, MdHomeWork, MdSchool } from 'react-icons/md'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
@@ -12,14 +14,14 @@ export default function AdminDashboard() {
   }, [])
 
   const tiles = stats ? [
-    { label: 'Séries de bac', val: stats.series, icon: '📋', color: '#8C6FF7' },
-    { label: 'Matières', val: stats.matieres, icon: '📚', color: '#D6A45B' },
-    { label: 'Universités', val: stats.universites, icon: '🏛️', color: '#C96A4A' },
-    { label: 'Filières', val: stats.filieres, icon: '🎓', color: '#C6A0FF' },
-    { label: 'Publiques', val: stats.universites_publiques, icon: '🏛️', color: '#C96A4A' },
-    { label: 'Privées', val: stats.universites_privees, icon: '🏫', color: '#D6A45B' },
-    { label: 'Seuils configurés', val: stats.seuils_configures, icon: '📈', color: '#8C6FF7' },
-    { label: 'Villes couvertes', val: stats.villes?.length || 0, icon: '📍', color: '#f472b6' },
+    { label: 'Séries de bac', val: stats.series, icon: FiClipboard, color: '#8C6FF7' },
+    { label: 'Matières', val: stats.matieres, icon: FiClipboard, color: '#D6A45B' },
+    { label: 'Universités', val: stats.universites, icon: MdAccountBalance, color: '#C96A4A' },
+    { label: 'Filières', val: stats.filieres, icon: MdSchool, color: '#C6A0FF' },
+    { label: 'Publiques', val: stats.universites_publiques, icon: MdAccountBalance, color: '#C96A4A' },
+    { label: 'Privées', val: stats.universites_privees, icon: MdHomeWork, color: '#D6A45B' },
+    { label: 'Seuils configurés', val: stats.seuils_configures, icon: MdChecklist, color: '#8C6FF7' },
+    { label: 'Villes couvertes', val: stats.villes?.length || 0, icon: FiMapPin, color: '#f472b6' },
   ] : []
 
   return (
@@ -60,7 +62,7 @@ export default function AdminDashboard() {
                       {t.val}
                     </div>
                   </div>
-                  <span style={{ fontSize: 24, opacity: 0.7 }}>{t.icon}</span>
+                  <t.icon size={24} style={{ opacity: 0.7 }} />
                 </div>
               </div>
             ))}
@@ -73,14 +75,17 @@ export default function AdminDashboard() {
               borderRadius: 18, padding: '24px',
             }}>
               <h3 style={{ margin: '0 0 14px', fontFamily: 'Fraunces, serif', fontSize: 16, color: '#F7EFE8' }}>
-                📍 Villes couvertes
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                  <FiMapPin size={18} />
+                  Villes couvertes
+                </span>
               </h3>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {stats.villes.map(v => (
                   <span key={v} style={{
                     background: 'rgba(201,106,74,0.1)', border: '1px solid rgba(201,106,74,0.2)',
                     color: '#C96A4A', borderRadius: 20, padding: '5px 14px', fontSize: 13,
-                  }}>📍 {v}</span>
+                  }}><FiMapPin size={14} style={{ marginRight: 8 }} />{v}</span>
                 ))}
               </div>
             </div>
@@ -89,10 +94,10 @@ export default function AdminDashboard() {
           {/* Quick links */}
           <div style={{ marginTop: 20, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
             {[
-              { to: '/admin/series', label: 'Gérer les séries', icon: '📋' },
-              { to: '/admin/universites', label: 'Gérer les universités', icon: '🏛️' },
-              { to: '/admin/filieres', label: 'Gérer les filières', icon: '🎓' },
-              { to: '/admin/seuils', label: 'Configurer les seuils', icon: '📈' },
+              { to: '/admin/series', label: 'Gérer les séries', icon: FiClipboard },
+              { to: '/admin/universites', label: 'Gérer les universités', icon: MdAccountBalance },
+              { to: '/admin/filieres', label: 'Gérer les filières', icon: MdSchool },
+              { to: '/admin/seuils', label: 'Configurer les seuils', icon: FiBarChart2 },
             ].map(q => (
               <a key={q.to} href={q.to} style={{
                 display: 'flex', alignItems: 'center', gap: 10,
@@ -101,7 +106,8 @@ export default function AdminDashboard() {
                 color: '#B7A7FF', fontSize: 14, fontFamily: 'Manrope, sans-serif',
                 transition: 'all 0.15s',
               }}>
-                <span>{q.icon}</span>{q.label}
+                <q.icon size={16} />
+                {q.label}
               </a>
             ))}
           </div>

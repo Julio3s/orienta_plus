@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import os
-import sys
 
-from openai import OpenAI as XAIClient
+from openai import OpenAI
 
 
 def extract_output_text(response):
@@ -19,21 +18,24 @@ def extract_output_text(response):
 
 
 def main():
-    api_key = os.getenv('XAI_API_KEY', '').strip()
-    model = os.getenv('XAI_MODEL', 'grok-3-mini')
-    base_url = os.getenv('XAI_API_BASE', 'https://api.x.ai/v1').rstrip('/')
+    api_key = os.getenv('OPENAI_API_KEY', '').strip()
+    model = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
+    base_url = os.getenv('OPENAI_API_BASE', '').rstrip('/')
 
     if not api_key:
-        print("XAI_API_KEY est manquante. Definis-la dans l'environnement avant le test.")
+        print("OPENAI_API_KEY est manquante. Definis-la dans l'environnement avant le test.")
         raise SystemExit(1)
 
-    print(f"Test de connexion a Grok sur {base_url} avec le modele {model}...")
+    print(f"Test de connexion a OpenAI avec le modele {model}...")
 
-    client = XAIClient(
-        api_key=api_key,
-        base_url=base_url,
-        timeout=30.0,
-    )
+    client_kwargs = {
+        'api_key': api_key,
+        'timeout': 30.0,
+    }
+    if base_url:
+        client_kwargs['base_url'] = base_url
+
+    client = OpenAI(**client_kwargs)
 
     response = client.responses.create(
         model=model,
@@ -52,7 +54,7 @@ def main():
 
     text = extract_output_text(response)
     if not text:
-        print("La reponse xAI ne contient aucun texte exploitable.")
+        print("La reponse OpenAI ne contient aucun texte exploitable.")
         raise SystemExit(1)
 
     print("Succes. Reponse :")
@@ -63,5 +65,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as exc:
-        print(f"Erreur pendant le test Grok : {exc}")
+        print(f"Erreur pendant le test OpenAI : {exc}")
         raise SystemExit(1) from exc

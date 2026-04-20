@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import CRUDTable from '../../components/admin/CRUDTable'
 import { matieresAPI } from '../../api/client'
 import formatApiError from '../../api/formatApiError'
+import { MdMenuBook } from 'react-icons/md'
 
 function MatiereForm({ item, onSave, onCancel }) {
   const [form, setForm] = useState({ code: item?.code || '', nom: item?.nom || '' })
@@ -197,7 +198,7 @@ export default function GestionMatieres() {
 
       <CRUDTable
         title="Matieres"
-        icon="📚"
+        icon={<MdMenuBook size={22} style={{ marginRight: 10, verticalAlign: '-4px' }} />}
         items={filtered}
         columns={columns}
         loading={loading}

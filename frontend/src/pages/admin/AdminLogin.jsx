@@ -41,10 +41,10 @@ export default function AdminLogin() {
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{
             width: 60, height: 60, borderRadius: 18, margin: '0 auto 16px',
-            background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)',
+            background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: 'Fraunces, serif', fontWeight: 800, color: '#fff', fontSize: 22,
-            boxShadow: '0 8px 32px rgba(140,111,247,0.4)',
+            boxShadow: '0 10px 34px rgba(201,106,74,0.28)',
           }}>O+</div>
           <h1 style={{
             margin: '0 0 6px', fontFamily: 'Fraunces, serif',
@@ -107,11 +107,11 @@ export default function AdminLogin() {
 
             <button type="submit" disabled={loading} style={{
               marginTop: 8, padding: '13px 20px', borderRadius: 12,
-              background: 'linear-gradient(135deg, #8C6FF7, #5E49C8)',
+              background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-primary-deep))',
               border: 'none', color: '#fff', fontFamily: 'Fraunces, serif',
               fontWeight: 700, fontSize: 15, cursor: loading ? 'wait' : 'pointer',
               transition: 'opacity 0.15s',
-              boxShadow: '0 6px 24px rgba(140,111,247,0.35)',
+              boxShadow: '0 14px 34px rgba(201,106,74,0.22)',
             }}>
               {loading ? '⏳ Connexion...' : '🔐 Se connecter'}
             </button>

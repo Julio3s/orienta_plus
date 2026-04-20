@@ -109,16 +109,15 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
 
-# xAI / Grok configuration
-XAI_API_KEY = os.environ.get('XAI_API_KEY', '').strip()
-XAI_API_BASE = os.environ.get('XAI_API_BASE', 'https://api.x.ai/v1').rstrip('/')
-XAI_MODEL = os.environ.get('XAI_MODEL', 'grok-3-mini')
-XAI_MAX_TOKENS = int(os.environ.get('XAI_MAX_TOKENS', '800'))
-XAI_TEMPERATURE = float(os.environ.get('XAI_TEMPERATURE', '0.7'))
-XAI_REQUEST_TIMEOUT = float(os.environ.get('XAI_REQUEST_TIMEOUT', '30'))
-# Chat Completions est en general plus fiable que Responses sur l'endpoint xAI ; mettre True pour tester Responses.
-XAI_USE_RESPONSES_API = os.environ.get('XAI_USE_RESPONSES_API', 'False') == 'True'
-XAI_STORE_CONVERSATIONS = os.environ.get('XAI_STORE_CONVERSATIONS', 'False') == 'True'
+# Groq configuration
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '').strip()
+GROQ_API_BASE = os.environ.get('GROQ_API_BASE', 'https://api.groq.com/openai/v1').rstrip('/')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.1-8b-instant')
+GROQ_MAX_TOKENS = int(os.environ.get('GROQ_MAX_TOKENS', '800'))
+GROQ_TEMPERATURE = float(os.environ.get('GROQ_TEMPERATURE', '0.7'))
+GROQ_REQUEST_TIMEOUT = float(os.environ.get('GROQ_REQUEST_TIMEOUT', '30'))
+GROQ_USE_RESPONSES_API = os.environ.get('GROQ_USE_RESPONSES_API', 'False') == 'True'
+GROQ_STORE_CONVERSATIONS = os.environ.get('GROQ_STORE_CONVERSATIONS', 'False') == 'True'
 
 # Email configuration
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
@@ -164,7 +163,7 @@ LOGGING = {
         'level': 'INFO',
     },
     'loggers': {
-        'orienta.grok_service': {
+        'orienta.groq_service': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,

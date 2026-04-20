@@ -1,10 +1,13 @@
 import { BookOpen, Building2, Compass, Home } from 'lucide-react'
+import { RiRobot2Line } from 'react-icons/ri'
 import { Link, useLocation } from 'react-router-dom'
 import ThemeToggle from './ThemeToggle'
 import useMediaQuery from '../hooks/useMediaQuery'
+import { useTheme } from '../theme/ThemeProvider'
 
 const links = [
   { to: '/', label: 'Accueil', mobileLabel: 'Accueil', icon: Home },
+  { to: '/assistant', label: 'Assistant O+', mobileLabel: 'O+', icon: RiRobot2Line },
   { to: '/orientation', label: 'Orientation', mobileLabel: 'Orient.', icon: Compass },
   { to: '/universites', label: 'Universites', mobileLabel: 'Univs', icon: Building2 },
   { to: '/filieres', label: 'Filieres et metiers', mobileLabel: 'Filieres', icon: BookOpen },
@@ -14,6 +17,7 @@ export default function Navbar() {
   const { pathname } = useLocation()
   const isMobile = useMediaQuery('(max-width: 767px)')
   const activeLink = links.find((link) => link.to === pathname)
+  const { isLight } = useTheme()
 
   return (
     <>
@@ -22,10 +26,10 @@ export default function Navbar() {
           position: 'sticky',
           top: 0,
           zIndex: 100,
-          background: 'rgba(19,15,17,0.78)',
-          backdropFilter: 'blur(18px)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-          boxShadow: '0 10px 32px rgba(19,15,17,0.18)',
+          background: isLight ? 'rgba(255,255,255,0.92)' : 'rgba(19,15,17,0.78)',
+          backdropFilter: isLight ? 'none' : 'blur(18px)',
+          borderBottom: isLight ? '1px solid rgba(15,23,42,0.08)' : '1px solid rgba(255,255,255,0.05)',
+          boxShadow: isLight ? '0 10px 30px rgba(15,23,42,0.08)' : '0 10px 32px rgba(19,15,17,0.18)',
         }}
       >
         <div
@@ -64,7 +68,7 @@ export default function Navbar() {
                 fontFamily: 'Fraunces, serif',
                 fontWeight: 700,
                 fontSize: isMobile ? 16 : 18,
-                color: '#F7EFE8',
+                color: isLight ? 'var(--text-strong)' : '#F7EFE8',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -88,7 +92,7 @@ export default function Navbar() {
                 </div>
                 <div
                   style={{
-                    color: '#8B7669',
+                    color: isLight ? 'var(--text-muted)' : '#8B7669',
                     fontSize: 11,
                     fontFamily: 'Manrope, sans-serif',
                   }}
@@ -111,8 +115,12 @@ export default function Navbar() {
                       fontFamily: 'Manrope, sans-serif',
                       fontSize: 14,
                       fontWeight: 600,
-                      color: pathname === link.to ? '#F0B39A' : '#B59F90',
-                      background: pathname === link.to ? 'rgba(201,106,74,0.12)' : 'transparent',
+                      color: pathname === link.to
+                        ? (isLight ? 'rgba(15,23,42,0.92)' : '#F0B39A')
+                        : (isLight ? 'rgba(15,23,42,0.68)' : '#B59F90'),
+                      background: pathname === link.to
+                        ? (isLight ? 'rgba(47,92,127,0.10)' : 'rgba(201,106,74,0.12)')
+                        : 'transparent',
                       transition: 'all 0.15s',
                     }}
                   >
@@ -125,11 +133,11 @@ export default function Navbar() {
                 <ThemeToggle />
                 <div
                   style={{
-                    background: 'rgba(201,106,74,0.08)',
-                    border: '1px solid rgba(201,106,74,0.16)',
+                    background: isLight ? 'rgba(47,92,127,0.10)' : 'rgba(201,106,74,0.08)',
+                    border: isLight ? '1px solid rgba(47,92,127,0.20)' : '1px solid rgba(201,106,74,0.16)',
                     borderRadius: 999,
                     padding: '6px 12px',
-                    color: '#F0B39A',
+                    color: isLight ? 'rgba(15,23,42,0.82)' : '#F0B39A',
                     fontSize: 12,
                     fontWeight: 600,
                     fontFamily: 'Manrope, sans-serif',
@@ -156,10 +164,10 @@ export default function Navbar() {
             gap: 8,
             padding: 8,
             borderRadius: 24,
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(19,15,17,0.92)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 18px 42px rgba(0,0,0,0.34)',
+            border: isLight ? '1px solid rgba(15,23,42,0.10)' : '1px solid rgba(255,255,255,0.08)',
+            background: isLight ? 'rgba(255,255,255,0.94)' : 'rgba(19,15,17,0.92)',
+            backdropFilter: isLight ? 'none' : 'blur(20px)',
+            boxShadow: isLight ? '0 18px 42px rgba(15,23,42,0.12)' : '0 18px 42px rgba(0,0,0,0.34)',
           }}
         >
           {links.map((link) => {
@@ -177,13 +185,19 @@ export default function Navbar() {
                   padding: '10px 6px',
                   textDecoration: 'none',
                   borderRadius: 18,
-                  color: isActive ? '#F0B39A' : '#B59F90',
-                  background: isActive ? 'rgba(201,106,74,0.14)' : 'transparent',
-                  border: `1px solid ${isActive ? 'rgba(201,106,74,0.22)' : 'transparent'}`,
+                  color: isActive
+                    ? (isLight ? 'rgba(15,23,42,0.92)' : '#F0B39A')
+                    : (isLight ? 'rgba(15,23,42,0.66)' : '#B59F90'),
+                  background: isActive
+                    ? (isLight ? 'rgba(47,92,127,0.12)' : 'rgba(201,106,74,0.14)')
+                    : 'transparent',
+                  border: `1px solid ${isActive
+                    ? (isLight ? 'rgba(47,92,127,0.22)' : 'rgba(201,106,74,0.22)')
+                    : 'transparent'}`,
                   transition: 'all 0.2s ease',
                 }}
               >
-                <Icon size={18} strokeWidth={isActive ? 2.4 : 2} />
+                <Icon size={18} />
                 <span
                   style={{
                     fontSize: 11,
