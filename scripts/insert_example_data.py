@@ -234,6 +234,64 @@ UNIVERSITE_CLASSES = {
     'PIGIER Benin': 'prive_moyen',
 }
 
+UNIVERSITE_SEED = {
+    'Université d\'Abomey-Calavi (UAC)': {'ville': 'Abomey-Calavi', 'est_publique': True},
+    'Université de Parakou (UP)': {'ville': 'Parakou', 'est_publique': True},
+    'Université Protestante de l\'Afrique de l\'Ouest (UPAO)': {'ville': 'Porto-Novo', 'est_publique': False},
+    'Université Internationale de Cotonou (UIC)': {'ville': 'Cotonou', 'est_publique': False},
+    'Haute École de Commerce et de Management (HECM)': {'ville': 'Cotonou', 'est_publique': False},
+    'PIGIER Benin': {'ville': 'Cotonou', 'est_publique': False},
+}
+
+MATIERE_LABELS = {
+    'SVT': 'Sciences de la Vie et de la Terre',
+    'CHIMIE': 'Chimie',
+    'MATH': 'Mathématiques',
+    'PHY': 'Physique',
+    'INFO': 'Informatique',
+    'ANG': 'Anglais',
+    'FR': 'Français',
+    'PHILO': 'Philosophie',
+    'HIST': 'Histoire-Géographie',
+    'ECON': 'Économie',
+}
+
+
+def ensure_series_bac():
+    codes = set()
+    for row in FILIERES_COMPLETES:
+        codes.update(row[-1])
+    for code in sorted(codes):
+        SerieBac.objects.get_or_create(
+            code=code,
+            defaults={'nom': f'Série {code}', 'description': ''},
+        )
+    print(f'  ✓ Séries BAC: {SerieBac.objects.count()}')
+
+
+def ensure_matieres():
+    codes = set()
+    for triples in MATIERES_PRIORITAIRES.values():
+        for mat_code, _ in triples:
+            codes.add(mat_code)
+    for code in sorted(codes):
+        label = MATIERE_LABELS.get(code, code.replace('-', ' '))
+        Matiere.objects.get_or_create(code=code, defaults={'nom': label})
+    print(f'  ✓ Matières: {Matiere.objects.count()}')
+
+
+def ensure_universities():
+    for nom, meta in UNIVERSITE_SEED.items():
+        Universite.objects.get_or_create(
+            nom=nom,
+            defaults={
+                'ville': meta['ville'],
+                'est_publique': meta['est_publique'],
+                'description': '',
+            },
+        )
+    print(f'  ✓ Universités: {Universite.objects.count()}')
+
 
 def add_filieres():
     """Ajout des filières"""
@@ -354,14 +412,12 @@ def main():
     print("=" * 70)
     print("🚀 ORIENTA+ - Ajout des filières, matières prioritaires et universités")
     print("=" * 70)
-    
-    univ_count = Universite.objects.count()
-    print(f"\n📊 Universités existantes: {univ_count}")
-    
-    if univ_count == 0:
-        print("⚠️ Aucune université trouvée!")
-        return
-    
+
+    print("\n📚 Référentiels (séries, matières, universités)...")
+    ensure_series_bac()
+    ensure_matieres()
+    ensure_universities()
+
     # Supprimer les anciennes données
     print("\n⚠️ Nettoyage des anciennes données...")
     FiliereMatiere.objects.all().delete()
