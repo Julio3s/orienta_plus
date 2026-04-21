@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { BsPlus, BsStars, BsTrash, BsChevronUp, BsChevronDown } from 'react-icons/bs'
 import { FaCheckDouble } from 'react-icons/fa6'
 import { IoSend } from 'react-icons/io5'
-import { RiRobot2Line, RiHistoryLine } from 'react-icons/ri'
+import { RiRobot2Line, RiHistoryLine, RiCloseLine } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 import { chatbotAPI } from '../api/client'
 import useMediaQuery from '../hooks/useMediaQuery'
@@ -158,6 +158,26 @@ export default function AssistantPage() {
     setMessages([createMessage('assistant', '👋 Nouvelle conversation ! Je suis O+, ton conseiller d\'orientation. Que veux-tu savoir ?')])
   }
 
+  const deleteDiscussion = (userMessageId) => {
+    setMessages((prev) => {
+      const userIndex = prev.findIndex((m) => m.id === userMessageId && m.role === 'user')
+      if (userIndex === -1) return prev
+
+      const nextIndex = userIndex + 1
+      const idsToRemove = new Set([userMessageId])
+
+      // Remove the assistant answer directly tied to this user question.
+      if (prev[nextIndex] && prev[nextIndex].role === 'assistant') {
+        idsToRemove.add(prev[nextIndex].id)
+      }
+
+      const remaining = prev.filter((m) => !idsToRemove.has(m.id))
+      return remaining.length > 0
+        ? remaining
+        : [createMessage('assistant', '👋 Salut ! Je suis O+, ton conseiller d\'orientation. Pose-moi tes questions sur les filières, universités ou débouchés.')]
+    })
+  }
+
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -231,25 +251,42 @@ export default function AssistantPage() {
         onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
           position: 'fixed',
-          bottom: isMobile ? (inputExpanded ? 120 : 80) : 90,
-          left: 16,
-          zIndex: 100,
-          width: 48,
+          top: 'calc(74px + env(safe-area-inset-top))',
+          right: 12,
+          zIndex: 1205,
+          minWidth: 48,
           height: 48,
           borderRadius: 24,
           background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-          border: 'none',
+          border: '1px solid rgba(255,255,255,0.15)',
           color: '#fff',
           display: isMobile ? 'flex' : 'none',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: 6,
+          padding: '0 12px',
           cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          transition: 'bottom 0.3s ease',
+          boxShadow: '0 8px 18px rgba(0,0,0,0.35)',
+          transition: 'all 0.25s ease',
         }}
+        aria-label={sidebarOpen ? 'Fermer historique' : 'Ouvrir historique'}
       >
-        <RiHistoryLine size={22} />
+        {sidebarOpen ? <RiCloseLine size={22} /> : <RiHistoryLine size={22} />}
+        {!sidebarOpen && <span style={{ fontSize: 12, fontWeight: 600 }}>Historique</span>}
       </button>
+
+      {/* Overlay mobile */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.4)',
+            zIndex: 85,
+          }}
+        />
+      )}
 
       {/* Sidebar */}
       <div className="sidebar" style={{
@@ -269,6 +306,28 @@ export default function AssistantPage() {
         paddingTop: '70px',
       }}>
         <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          {isMobile && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  background: 'rgba(255,255,255,0.04)',
+                  color: '#cbd5e1',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                aria-label="Fermer historique"
+              >
+                <RiCloseLine size={16} />
+              </button>
+            </div>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <div style={{
               width: 40, height: 40, borderRadius: 12,
@@ -320,20 +379,46 @@ export default function AssistantPage() {
           <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Discussions récentes
           </div>
-          {messages.filter(m => m.role === 'user').slice(-10).reverse().map((msg, idx) => (
-            <div key={idx} style={{
+          {messages.filter(m => m.role === 'user').slice(-10).reverse().map((msg) => (
+            <div key={msg.id} style={{
               padding: '10px 12px',
               borderRadius: 12,
               background: 'rgba(255,255,255,0.03)',
               marginBottom: 8,
-              cursor: 'pointer',
               fontSize: 12,
               color: '#cbd5e1',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
             }}>
-              {msg.content.length > 40 ? msg.content.slice(0, 40) + '...' : msg.content}
+              <span style={{
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {msg.content.length > 40 ? msg.content.slice(0, 40) + '...' : msg.content}
+              </span>
+              <button
+                onClick={() => deleteDiscussion(msg.id)}
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 8,
+                  border: '1px solid rgba(248,113,113,0.25)',
+                  background: 'rgba(239,68,68,0.10)',
+                  color: '#f87171',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+                aria-label="Supprimer cette discussion"
+                title="Supprimer cette discussion"
+              >
+                <BsTrash size={11} />
+              </button>
             </div>
           ))}
         </div>
