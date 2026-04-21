@@ -193,31 +193,54 @@ URLs principales en local :
 
 Utiliser le compte cree avec `python manage.py createsuperuser`.
 
-## Deploiement
+## Deploiement (Railway + Render)
 
-Variables backend minimales a definir en production :
+### 1) Backend sur Railway (Django API)
+
+Creer un nouveau projet Railway relie a ce repo, puis configurer le service backend :
+
+- Root directory : `backend`
+- Build command : `pip install -r requirements.txt && python manage.py collectstatic --noinput`
+- Start command : `gunicorn orienta_backend.wsgi:application --bind 0.0.0.0:$PORT`
+
+Ajouter une base PostgreSQL dans Railway et definir les variables backend :
 
 ```env
-SECRET_KEY=...
+SECRET_KEY=...valeur-secrete...
 DEBUG=False
-ALLOWED_HOSTS=votre-domaine
-CORS_ALLOWED_ORIGINS=https://votre-frontend.app
-DB_NAME=...
-DB_USER=...
-DB_PASSWORD=...
-DB_HOST=...
-DB_PORT=5432
+ALLOWED_HOSTS=votre-backend.up.railway.app
+CORS_ALLOWED_ORIGINS=https://votre-frontend.onrender.com
+
+# Recommande sur Railway
+DATABASE_URL=${{Postgres.DATABASE_URL}}
+
+# IA
 GROQ_API_KEY=gsk_votre_cle
 GROQ_API_BASE=https://api.groq.com/openai/v1
 GROQ_MODEL=llama-3.1-8b-instant
 ```
 
-Build frontend :
+Note : `DATABASE_URL` est supporte directement, sinon les variables `DB_*` restent possibles.
 
-```bash
-cd frontend
-npm run build
+### 2) Frontend sur Render (React/Vite)
+
+Creer un service **Static Site** sur Render :
+
+- Root directory : `frontend`
+- Build command : `npm install && npm run build`
+- Publish directory : `dist`
+
+Variables d'environnement Render :
+
+```env
+VITE_API_URL=https://votre-backend.up.railway.app/api
 ```
+
+### 3) Verification apres deploiement
+
+- Tester `https://votre-backend.up.railway.app/api/` (endpoint API accessible)
+- Ouvrir le frontend Render et verifier la connexion admin + chatbot
+- Si erreur CORS, verifier `CORS_ALLOWED_ORIGINS` et l'URL exacte Render
 
 ## Ressources
 

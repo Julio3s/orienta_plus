@@ -23,7 +23,7 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('orienta_refresh_token')
       if (refresh) {
         try {
-          const { data } = await axios.post('/api/token/refresh/', { refresh })
+          const { data } = await api.post('/token/refresh/', { refresh })
           localStorage.setItem('orienta_access_token', data.access)
           original.headers.Authorization = `Bearer ${data.access}`
           return api(original)

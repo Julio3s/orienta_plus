@@ -4,6 +4,7 @@ import { filieresAPI } from '../api/client'
 import useMediaQuery from '../hooks/useMediaQuery'
 import { FiActivity, FiBookOpen, FiBriefcase, FiCpu, FiHeart, FiMonitor, FiPenTool, FiSearch, FiSun, FiTarget, FiTrendingUp, FiZap } from 'react-icons/fi'
 import { MdGavel } from 'react-icons/md'
+import filieresBg from '../assets/images/OIP (2).jpg'
 
 const DOMAINE_CONFIG = {
   informatique: { icon: FiMonitor, label: 'Informatique & Numérique', color: '#2F5C7F' },
@@ -47,12 +48,21 @@ export default function FilieresPage() {
   })
 
   return (
-    <div className="public-page-shell">
+    <div className="public-page-shell" style={{ background: 'transparent' }}>
       <Navbar />
 
       {/* Hero */}
       <main className="public-page-main" style={{ animation: 'slideUp 0.5s ease' }}>
-        <section className="public-page-hero">
+        <section
+          className="public-page-hero"
+          style={{
+            backgroundImage: `linear-gradient(rgba(10,8,18,0.45), rgba(10,8,18,0.56)), url(${filieresBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            border: '1px solid rgba(255,255,255,0.04)',
+          }}
+        >
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           background: 'rgba(214,164,91,0.1)', border: '1px solid rgba(214,164,91,0.2)',

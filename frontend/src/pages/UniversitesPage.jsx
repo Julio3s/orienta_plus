@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import { universitesAPI, filieresAPI } from '../api/client'
+import universitesBg from '../assets/images/OIP (3).jpg'
 
 const VILLES = ['Toutes', 'Cotonou', 'Abomey-Calavi', 'Parakou', 'Abomey', 'Porto-Novo']
 const TYPE_LABELS = {
@@ -43,11 +44,21 @@ export default function UniversitesPage() {
   }
 
   return (
-    <div className="public-page-shell">
+    <div className="public-page-shell" style={{ background: 'transparent' }}>
       <Navbar />
 
       <main className="public-page-main">
-        <section className="public-page-hero" style={{ animation: 'slideUp 0.5s ease' }}>
+        <section
+          className="public-page-hero"
+          style={{
+            animation: 'slideUp 0.5s ease',
+            backgroundImage: `linear-gradient(rgba(10,8,18,0.45), rgba(10,8,18,0.56)), url(${universitesBg})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            border: '1px solid rgba(255,255,255,0.04)',
+          }}
+        >
           <div
             style={{
               display: 'inline-flex',

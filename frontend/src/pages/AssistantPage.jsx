@@ -1,83 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { BsStars } from 'react-icons/bs'
+import { useEffect, useRef, useState } from 'react'
+import { BsPlus, BsStars, BsTrash, BsChevronUp, BsChevronDown } from 'react-icons/bs'
 import { FaCheckDouble } from 'react-icons/fa6'
-import { HiOutlineSparkles } from 'react-icons/hi2'
 import { IoSend } from 'react-icons/io5'
-import { MdOutlineAutoGraph, MdOutlineSchool, MdOutlineTravelExplore } from 'react-icons/md'
-import { RiRobot2Line } from 'react-icons/ri'
+import { RiRobot2Line, RiHistoryLine } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
-import { chatbotAPI, seriesAPI, suggererAPI } from '../api/client'
+import { chatbotAPI } from '../api/client'
 import useMediaQuery from '../hooks/useMediaQuery'
 import Navbar from '../components/Navbar'
 
-const ASSISTANT_HISTORY_STORAGE_KEY = 'orienta_assistant_history_v2'
-const ASSISTANT_SIMULATION_DRAFT_STORAGE_KEY = 'orienta_assistant_simulation_draft'
-const MAX_HISTORY_MESSAGES = 40
-
-const RESULT_CONFIG = {
-  bourse: { label: 'Bourse complete', color: '#C96A4A', bg: 'rgba(201,106,74,0.14)' },
-  demi_bourse: { label: 'Demi-bourse', color: '#2F5C7F', bg: 'rgba(47,92,127,0.14)' },
-  payant: { label: 'Admission payante', color: '#D6A45B', bg: 'rgba(214,164,91,0.14)' },
-  non_admissible: { label: 'Non admissible', color: '#EF4444', bg: 'rgba(239,68,68,0.14)' },
-}
-
-const QUICK_PROMPTS = [
-  'Compare UAC et UNSTIM pour informatique',
-  'Serie D : quelles filieres en sante ?',
-  'Comment obtenir une bourse universitaire ?',
-  'Serie C, MATH 15, PHYS 14, SVT 13, CHIMIE 12',
-]
-
-const SUBJECT_CODE_ALIASES = {
-  MATH: ['math', 'maths', 'mathematique', 'mathematiques'],
-  PHY: ['phy', 'phys', 'physique', 'pc', 'physique chimie'],
-  PHYS: ['phy', 'phys', 'physique', 'pc', 'physique chimie'],
-  CHIMIE: ['chimie', 'chim'],
-  SVT: ['svt', 'bio', 'biologie'],
-  ANG: ['ang', 'anglais'],
-  FR: ['francais', 'fr'],
-  FRANCAIS: ['francais', 'fr'],
-  HIST: ['histoire', 'hist', 'hg', 'histoire geo', 'histoire geographie'],
-  GEO: ['geo', 'geographie'],
-  ECON: ['eco', 'economie'],
-  INFO: ['info', 'informatique'],
-  COMPTA: ['compta', 'comptabilite'],
-  PHILO: ['philo', 'philosophie'],
-  ESP: ['esp', 'espagnol'],
-  ALL: ['all', 'allemand'],
-  ARABE: ['arabe'],
-  PSYCHO: ['psycho', 'psychologie'],
-  SPORT: ['sport', 'eps'],
-  ART: ['art', 'arts'],
-  MUSIQUE: ['musique'],
-}
-
-const STOP_WORDS = new Set([
-  'de',
-  'des',
-  'du',
-  'et',
-  'la',
-  'le',
-  'les',
-  'matiere',
-  'matieres',
-  'langue',
-  'sciences',
-  'serie',
-])
-
-function normalizeText(value) {
-  return String(value || '')
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[’']/g, "'")
-}
-
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
+const STORAGE_KEY = 'orienta_assistant_history'
 
 function createTimeLabel() {
   return new Intl.DateTimeFormat('fr-FR', {
@@ -86,1373 +17,573 @@ function createTimeLabel() {
   }).format(new Date())
 }
 
-function createMessage(role, content, extra = {}) {
+function createMessage(role, content) {
   return {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
     role,
-    kind: 'text',
-    time: createTimeLabel(),
-    ...extra,
     content,
+    time: createTimeLabel(),
   }
 }
 
-function createInitialMessages() {
-  return [
-    createMessage(
-      'assistant',
-      "Bonjour. Je suis O+, ton assistant d'orientation universitaire. Je peux repondre a tes questions et lancer le simulateur si tu m'envoies une serie avec des notes."
-    ),
-    createMessage(
-      'assistant',
-      'Exemple utile : "Serie C, MATH 15, PHYS 14, SVT 13, CHIMIE 12".',
-      { tone: 'hint' }
-    ),
+// Composants flottants (livres, matières)
+const FloatingItems = () => {
+  const items = [
+    { icon: '📚' }, { icon: '📖' }, { icon: '📘' }, { icon: '📙' }, { icon: '📕' }, { icon: '📗' },
+    { icon: '✏️' }, { icon: '🔬' }, { icon: '⚗️' }, { icon: '🧪' }, { icon: '🧬' },
+    { icon: '📐' }, { icon: '📏' }, { icon: '💻' }, { icon: '🎓' }, { icon: '🏛️' },
+    { icon: '📝' }, { icon: '📋' },
   ]
-}
 
-function readStoredMessages() {
-  if (typeof window === 'undefined') return createInitialMessages()
+  return (
+    <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
+      {items.map((item, i) => {
+        const randomLeft = Math.random() * 100
+        const randomDelay = Math.random() * 15
+        const randomDuration = 8 + Math.random() * 12
+        const randomSize = 28 + Math.random() * 24
 
-  try {
-    const raw = window.localStorage.getItem(ASSISTANT_HISTORY_STORAGE_KEY)
-    if (!raw) return createInitialMessages()
-
-    const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || !parsed.length) return createInitialMessages()
-
-    return parsed
-      .filter((item) => item && typeof item.content === 'string' && typeof item.role === 'string')
-      .slice(-MAX_HISTORY_MESSAGES)
-      .map((item) => ({
-        kind: 'text',
-        time: createTimeLabel(),
-        ...item,
-      }))
-  } catch {
-    return createInitialMessages()
-  }
-}
-
-function buildSubjectEntry(matiere) {
-  const code = String(matiere?.code || '').toUpperCase()
-  const normalizedName = normalizeText(matiere?.nom || '')
-  const aliases = new Set()
-
-  if (code) aliases.add(normalizeText(code))
-  if (normalizedName) aliases.add(normalizedName)
-
-  normalizedName
-    .split(/\s+/)
-    .map((item) => item.trim())
-    .filter((item) => item.length >= 4 && !STOP_WORDS.has(item))
-    .forEach((item) => aliases.add(item))
-
-  ;(SUBJECT_CODE_ALIASES[code] || []).forEach((alias) => aliases.add(normalizeText(alias)))
-
-  if (code === 'PHY') {
-    ;(SUBJECT_CODE_ALIASES.PHYS || []).forEach((alias) => aliases.add(normalizeText(alias)))
-  }
-
-  if (code === 'PHYS') {
-    ;(SUBJECT_CODE_ALIASES.PHY || []).forEach((alias) => aliases.add(normalizeText(alias)))
-  }
-
-  return {
-    code,
-    nom: matiere?.nom || code,
-    aliases: Array.from(aliases).sort((a, b) => b.length - a.length),
-  }
-}
-
-function buildGenericSubjectCatalog(seriesList) {
-  const uniqueSubjects = new Map()
-
-  for (const serie of seriesList) {
-    for (const item of serie.matieres || []) {
-      const matiere = item.matiere
-      if (matiere?.code && !uniqueSubjects.has(matiere.code)) {
-        uniqueSubjects.set(matiere.code, buildSubjectEntry(matiere))
-      }
-    }
-  }
-
-  return Array.from(uniqueSubjects.values())
-}
-
-function detectSeries(text, seriesList) {
-  const normalized = normalizeText(text)
-  const orderedSeries = [...seriesList].sort(
-    (left, right) => String(right.code || '').length - String(left.code || '').length
+        return (
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              bottom: '-50px',
+              left: `${randomLeft}%`,
+              fontSize: `${randomSize}px`,
+              opacity: 0.4,
+              animation: `floatUp ${randomDuration}s linear infinite`,
+              animationDelay: `${randomDelay}s`,
+            }}
+          >
+            {item.icon}
+          </div>
+        )
+      })}
+      <style>{`
+        @keyframes floatUp {
+          0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+          50% { opacity: 0.6; }
+          100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+      `}</style>
+    </div>
   )
-
-  for (const serie of orderedSeries) {
-    const code = normalizeText(serie.code)
-    if (!code) continue
-
-    const pattern = new RegExp(`(?:^|[^a-z0-9])${escapeRegex(code)}(?:[^a-z0-9]|$)`, 'i')
-    if (pattern.test(normalized)) {
-      return serie
-    }
-  }
-
-  return null
-}
-
-function parseNumericValue(rawValue) {
-  const value = parseFloat(String(rawValue || '').replace(',', '.'))
-  if (Number.isNaN(value) || value < 0 || value > 20) return null
-  return Number(value.toFixed(2))
-}
-
-function findNoteValue(normalizedText, alias) {
-  const escapedAlias = alias
-    .split(/\s+/)
-    .map((part) => escapeRegex(part))
-    .join('\\s+')
-
-  const patterns = [
-    new RegExp(
-      `(?:^|[^a-z0-9])${escapedAlias}\\s*(?:note\\s*)?(?::|=|\\-|est\\s+de|a|=>)?\\s*(\\d{1,2}(?:[\\.,]\\d+)?)`,
-      'i'
-    ),
-    new RegExp(
-      `(\\d{1,2}(?:[\\.,]\\d+)?)\\s*(?:\\/\\s*20)?\\s*(?:en\\s+)?${escapedAlias}(?:[^a-z0-9]|$)`,
-      'i'
-    ),
-  ]
-
-  for (const pattern of patterns) {
-    const match = normalizedText.match(pattern)
-    if (!match?.[1]) continue
-
-    const parsed = parseNumericValue(match[1])
-    if (parsed !== null) return parsed
-  }
-
-  return null
-}
-
-function extractNotesFromCatalog(text, subjectCatalog) {
-  const normalizedText = normalizeText(text)
-  const notes = {}
-
-  for (const subject of subjectCatalog) {
-    for (const alias of subject.aliases) {
-      const value = findNoteValue(normalizedText, alias)
-      if (value !== null) {
-        notes[subject.code] = value
-        break
-      }
-    }
-  }
-
-  return notes
-}
-
-function extractSimulationIntent(text, seriesList, genericCatalog) {
-  if (!seriesList.length) return null
-
-  const detectedSeries = detectSeries(text, seriesList)
-
-  if (detectedSeries) {
-    const subjectCatalog = (detectedSeries.matieres || []).map((item) => buildSubjectEntry(item.matiere))
-    const notes = extractNotesFromCatalog(text, subjectCatalog)
-    const noteCount = Object.keys(notes).length
-
-    if (noteCount >= Math.min(3, subjectCatalog.length || 3)) {
-      return { status: 'complete', serie: detectedSeries, notes }
-    }
-
-    if (noteCount > 0) {
-      const missingSubjects = (detectedSeries.matieres || [])
-        .map((item) => item.matiere)
-        .filter((matiere) => !(matiere.code in notes))
-        .slice(0, 4)
-        .map((matiere) => matiere.nom)
-
-      return {
-        status: 'partial',
-        reason: 'missing_notes',
-        serie: detectedSeries,
-        notes,
-        missingSubjects,
-      }
-    }
-
-    return null
-  }
-
-  const genericNotes = extractNotesFromCatalog(text, genericCatalog)
-  if (Object.keys(genericNotes).length >= 2) {
-    return {
-      status: 'partial',
-      reason: 'missing_series',
-      notes: genericNotes,
-    }
-  }
-
-  return null
-}
-
-function buildSimulationDraft(intent) {
-  return {
-    serieId: intent?.serie?.id || null,
-    serieCode: intent?.serie?.code || '',
-    notes: intent?.notes || {},
-    savedAt: Date.now(),
-  }
-}
-
-function buildHistoryForBackend(messages) {
-  return messages
-    .filter((message) => typeof message.content === 'string' && message.content.trim())
-    .slice(-8)
-    .map((message) => ({
-      role: message.role,
-      content: message.summary || message.content,
-    }))
-}
-
-function getLatestSimulationPayload(messages) {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    if (messages[index].kind === 'simulation' && messages[index].payload) {
-      return messages[index].payload
-    }
-  }
-
-  return null
 }
 
 export default function AssistantPage() {
   const navigate = useNavigate()
   const isMobile = useMediaQuery('(max-width: 767px)')
-  const [series, setSeries] = useState([])
-  const [seriesLoading, setSeriesLoading] = useState(true)
-  const [messages, setMessages] = useState(() => readStoredMessages())
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const textareaRef = useRef(null)
-  const bottomRef = useRef(null)
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
+  const [inputExpanded, setInputExpanded] = useState(false)
+  const messagesEndRef = useRef(null)
+  const inputRef = useRef(null)
 
-  const genericSubjectCatalog = useMemo(() => buildGenericSubjectCatalog(series), [series])
-  const latestSimulation = useMemo(() => getLatestSimulationPayload(messages), [messages])
-
-  const composerBottom = isMobile ? 'calc(102px + env(safe-area-inset-bottom))' : '28px'
-  const pageBottomPadding = isMobile ? 'calc(250px + env(safe-area-inset-bottom))' : '180px'
-
+  // Charger l'historique
   useEffect(() => {
-    let isMounted = true
-
-    seriesAPI
-      .list()
-      .then((response) => {
-        if (!isMounted) return
-        setSeries(response.data.results || response.data)
-        setSeriesLoading(false)
-      })
-      .catch(() => {
-        if (!isMounted) return
-        setSeriesLoading(false)
-      })
-
-    return () => {
-      isMounted = false
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(parsed)
+        } else {
+          setMessages([createMessage('assistant', '👋 Salut ! Je suis O+, ton conseiller d\'orientation. Pose-moi tes questions sur les filières, universités ou débouchés.')])
+        }
+      } catch { }
+    } else {
+      setMessages([createMessage('assistant', '👋 Salut ! Je suis O+, ton conseiller d\'orientation. Pose-moi tes questions sur les filières, universités ou débouchés.')])
     }
   }, [])
 
+  // Sauvegarder l'historique
   useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    try {
-      window.localStorage.setItem(
-        ASSISTANT_HISTORY_STORAGE_KEY,
-        JSON.stringify(messages.slice(-MAX_HISTORY_MESSAGES))
-      )
-    } catch {}
+    if (messages.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-50)))
+    }
   }, [messages])
 
+  // Scroll en bas
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, loading])
 
+  // Fermer sidebar sur mobile
   useEffect(() => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-    textarea.style.height = '0px'
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 140)}px`
-  }, [input])
-
-  const appendMessages = (...nextMessages) => {
-    setMessages((previous) => [...previous, ...nextMessages].slice(-MAX_HISTORY_MESSAGES))
-  }
-
-  const clearConversation = () => {
-    const baseMessages = createInitialMessages()
-    setMessages(baseMessages)
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(ASSISTANT_HISTORY_STORAGE_KEY)
-    }
-  }
-
-  const openOrientationWithDraft = (draft) => {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(
-        ASSISTANT_SIMULATION_DRAFT_STORAGE_KEY,
-        JSON.stringify({
-          ...draft,
-          savedAt: Date.now(),
-        })
-      )
-    }
-
-    navigate('/orientation')
-  }
-
-  const runSimulationFromIntent = async (intent) => {
-    const draft = buildSimulationDraft(intent)
-
-    try {
-      const { data } = await suggererAPI.suggerer({
-        serie_id: intent.serie.id,
-        notes: intent.notes,
-      })
-
-      const resultats = Array.isArray(data?.resultats) ? data.resultats : []
-      if (!resultats.length) {
-        appendMessages(
-          createMessage(
-            'assistant',
-            `J'ai lance le simulateur pour la serie ${intent.serie.code} avec ${Object.keys(intent.notes).length} notes reconnues, mais je n'obtiens pas de proposition exploitable pour le moment.`
-          ),
-          createMessage(
-            'assistant',
-            'Tu peux ouvrir le simulateur complet pour verifier ou completer tes notes.',
-            {
-              kind: 'action',
-              actionLabel: 'Ouvrir le simulateur',
-              actionType: 'redirect',
-              draft,
-            }
-          )
-        )
-        return
-      }
-
-      const topResults = resultats.slice(0, 4)
-      const summary = topResults
-        .map((resultat) => `${resultat.filiere_nom} (${resultat.pourcentage}%)`)
-        .join(', ')
-
-      appendMessages(
-        createMessage(
-          'assistant',
-          `J'ai utilise le simulateur ORIENTA+ pour la serie ${intent.serie.code} avec ${Object.keys(intent.notes).length} notes reconnues. Voici les meilleures pistes obtenues par l'algo.`,
-          { summary: `Simulation ${intent.serie.code}: ${summary}` }
-        ),
-        createMessage(
-          'assistant',
-          `Simulation ${intent.serie.code}`,
-          {
-            kind: 'simulation',
-            summary: `Simulation ${intent.serie.code}: ${summary}`,
-            payload: {
-              serieCode: intent.serie.code,
-              noteCount: Object.keys(intent.notes).length,
-              resultats: topResults,
-              total: resultats.length,
-            },
-          }
-        ),
-        createMessage(
-          'assistant',
-          'Si tu veux, tu peux aussi ouvrir le simulateur complet avec le brouillon deja prepare.',
-          {
-            kind: 'action',
-            actionLabel: 'Continuer dans le simulateur',
-            actionType: 'redirect',
-            draft,
-          }
-        )
-      )
-    } catch {
-      appendMessages(
-        createMessage(
-          'assistant',
-          "Je n'ai pas reussi a lancer la simulation automatiquement cette fois-ci."
-        ),
-        createMessage(
-          'assistant',
-          'Ouvre le simulateur complet et je t y enverrai avec les informations deja reconnues.',
-          {
-            kind: 'action',
-            actionLabel: 'Ouvrir le simulateur',
-            actionType: 'redirect',
-            draft,
-          }
-        )
-      )
-    }
-  }
-
-  const handlePartialSimulationIntent = (intent) => {
-    const draft = buildSimulationDraft(intent)
-
-    if (intent.reason === 'missing_series') {
-      appendMessages(
-        createMessage(
-          'assistant',
-          "J'ai reconnu des notes, mais pas la serie du bac. Dis-moi par exemple 'Serie C' ou ouvre directement le simulateur."
-        ),
-        createMessage(
-          'assistant',
-          'Le simulateur complet est la meilleure option si tu veux saisir les informations proprement.',
-          {
-            kind: 'action',
-            actionLabel: 'Ouvrir le simulateur',
-            actionType: 'redirect',
-            draft,
-          }
-        )
-      )
-      return
-    }
-
-    const missingText =
-      intent.missingSubjects?.length
-        ? `Il me manque encore par exemple : ${intent.missingSubjects.join(', ')}.`
-        : 'Il me manque encore quelques notes pour une simulation plus solide.'
-
-    appendMessages(
-      createMessage(
-        'assistant',
-        `J'ai reconnu la serie ${intent.serie.code} et ${Object.keys(intent.notes).length} note(s). ${missingText}`
-      ),
-      createMessage(
-        'assistant',
-        'Je peux continuer directement dans le simulateur avec ce brouillon.',
-        {
-          kind: 'action',
-          actionLabel: 'Ouvrir le simulateur',
-          actionType: 'redirect',
-          draft,
+    if (isMobile && sidebarOpen) {
+      const handleClickOutside = (e) => {
+        if (!e.target.closest('.sidebar') && !e.target.closest('.sidebar-toggle')) {
+          setSidebarOpen(false)
         }
-      )
-    )
-  }
+      }
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isMobile, sidebarOpen])
 
-  const send = async () => {
+  const sendMessage = async () => {
     const text = input.trim()
     if (!text || loading) return
 
-    const userMessage = createMessage('user', text)
-    const historyMessages = [...messages, userMessage]
-    const simulationIntent = extractSimulationIntent(text, series, genericSubjectCatalog)
-
+    const userMsg = createMessage('user', text)
+    setMessages(prev => [...prev, userMsg])
     setInput('')
-    setMessages((previous) => [...previous, userMessage].slice(-MAX_HISTORY_MESSAGES))
-
-    if (simulationIntent?.status === 'partial') {
-      handlePartialSimulationIntent(simulationIntent)
-      return
-    }
-
     setLoading(true)
-
-    if (simulationIntent?.status === 'complete') {
-      await runSimulationFromIntent(simulationIntent)
-      setLoading(false)
-      return
-    }
 
     try {
       const { data } = await chatbotAPI.envoyer({
         message: text,
-        historique: buildHistoryForBackend(historyMessages),
-        context: latestSimulation
-          ? {
-              serie: latestSimulation.serieCode,
-              has_results: true,
-            }
-          : {},
+        historique: messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+        context: {}
       })
-
-      appendMessages(createMessage('assistant', data.reponse))
-    } catch {
-      appendMessages(
-        createMessage(
-          'assistant',
-          "Je rencontre une difficulte technique. Reessaie dans quelques instants avec ta question d'orientation."
-        )
-      )
+      setMessages(prev => [...prev, createMessage('assistant', data.reponse)])
+    } catch (error) {
+      setMessages(prev => [...prev, createMessage('assistant', '❌ Désolé, une erreur technique est survenue. Réessaie dans un instant.')])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault()
-      send()
+  const clearHistory = () => {
+    if (confirm('Effacer toute la conversation ?')) {
+      setMessages([createMessage('assistant', '👋 Salut ! Je suis O+, ton conseiller d\'orientation. Pose-moi tes questions sur les filières, universités ou débouchés.')])
+      localStorage.removeItem(STORAGE_KEY)
     }
   }
 
-  const renderMessage = (message) => {
-    if (message.kind === 'simulation' && message.payload) {
-      return (
-        <div
-          key={message.id}
-          style={{
-            maxWidth: '100%',
-            borderRadius: 24,
-            border: '1px solid rgba(201,106,74,0.16)',
-            background: 'linear-gradient(135deg, rgba(201,106,74,0.10), rgba(47,92,127,0.06))',
-            padding: isMobile ? 14 : 18,
-            boxShadow: '0 20px 44px rgba(0,0,0,0.16)',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: 14,
-              flexWrap: 'wrap',
-              marginBottom: 14,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '7px 12px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.06)',
-                  color: '#F0B39A',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <MdOutlineAutoGraph size={15} />
-                Simulation ORIENTA+
-              </div>
-              <div
-                style={{
-                  marginTop: 10,
-                  color: '#F7EFE8',
-                  fontFamily: 'Fraunces, serif',
-                  fontSize: isMobile ? 20 : 24,
-                  fontWeight: 700,
-                }}
-              >
-                Serie {message.payload.serieCode}
-              </div>
-              <div style={{ marginTop: 4, color: '#B8C3D1', fontSize: 13 }}>
-                {message.payload.noteCount} note(s) reconnue(s) • {message.payload.total} proposition(s)
-              </div>
-            </div>
+  const newConversation = () => {
+    setMessages([createMessage('assistant', '👋 Nouvelle conversation ! Je suis O+, ton conseiller d\'orientation. Que veux-tu savoir ?')])
+  }
 
-            <div
-              style={{
-                minWidth: 120,
-                padding: '12px 14px',
-                borderRadius: 18,
-                background: 'rgba(255,255,255,0.05)',
-                textAlign: 'center',
-              }}
-            >
-              <div style={{ color: '#8B9AA8', fontSize: 11, textTransform: 'uppercase' }}>
-                Meilleure compat.
-              </div>
-              <div
-                style={{
-                  color: '#F0B39A',
-                  fontFamily: 'Fraunces, serif',
-                  fontSize: 32,
-                  fontWeight: 800,
-                  lineHeight: 1,
-                  marginTop: 6,
-                }}
-              >
-                {message.payload.resultats[0]?.pourcentage || 0}%
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
-            {message.payload.resultats.map((resultat) => {
-              const config = RESULT_CONFIG[resultat.statut] || RESULT_CONFIG.non_admissible
-              const universities = (resultat.universites || [])
-                .slice(0, 2)
-                .map((item) => item.universite_nom)
-                .join(' • ')
-
-              return (
-                <div
-                  key={`${message.id}-${resultat.filiere_id}`}
-                  style={{
-                    borderRadius: 18,
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(9,13,19,0.48)',
-                    padding: 14,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <div>
-                      <div style={{ color: '#F7EFE8', fontWeight: 700, fontSize: 15 }}>
-                        {resultat.filiere_nom}
-                      </div>
-                      <div style={{ marginTop: 4, color: '#8B9AA8', fontSize: 12 }}>
-                        Moyenne calculee : {resultat.moyenne_calculee}/20
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '7px 10px',
-                        borderRadius: 999,
-                        background: config.bg,
-                        color: config.color,
-                        fontSize: 12,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {resultat.pourcentage}% • {config.label}
-                    </div>
-                  </div>
-
-                  {universities && (
-                    <div style={{ marginTop: 10, color: '#B8C3D1', fontSize: 12, lineHeight: 1.6 }}>
-                      Universites : {universities}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
     }
-
-    if (message.kind === 'action') {
-      return (
-        <div
-          key={message.id}
-          style={{
-            maxWidth: isMobile ? '100%' : '84%',
-            padding: isMobile ? '14px' : '16px',
-            borderRadius: 22,
-            border: '1px solid rgba(47,92,127,0.18)',
-            background: 'rgba(47,92,127,0.10)',
-            boxShadow: '0 16px 36px rgba(0,0,0,0.12)',
-          }}
-        >
-          <div style={{ color: '#F7EFE8', fontWeight: 700, fontSize: 15 }}>{message.content}</div>
-          <div style={{ marginTop: 6, color: '#B8C3D1', fontSize: 13, lineHeight: 1.7 }}>
-            Je garde le brouillon pour t'eviter de retaper les informations reconnues.
-          </div>
-          <button
-            type="button"
-            onClick={() => openOrientationWithDraft(message.draft || {})}
-            style={{
-              marginTop: 14,
-              padding: '11px 16px',
-              borderRadius: 14,
-              border: 'none',
-              background: 'linear-gradient(135deg, #2F5C7F, #244760)',
-              color: '#fff',
-              cursor: 'pointer',
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            {message.actionLabel || 'Ouvrir le simulateur'}
-          </button>
-        </div>
-      )
-    }
-
-    const isUser = message.role === 'user'
-    const bubbleColor = isUser
-      ? 'linear-gradient(135deg, #C96A4A, #A94D31)'
-      : message.tone === 'hint'
-        ? 'rgba(47,92,127,0.14)'
-        : 'rgba(255,255,255,0.08)'
-
-    return (
-      <div
-        key={message.id}
-        style={{
-          display: 'flex',
-          justifyContent: isUser ? 'flex-end' : 'flex-start',
-          gap: 10,
-        }}
-      >
-        {!isUser && (
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <RiRobot2Line size={16} color="#fff" />
-          </div>
-        )}
-
-        <div
-          style={{
-            maxWidth: isMobile ? '88%' : '76%',
-            padding: '12px 14px 8px',
-            borderRadius: isUser ? '20px 20px 6px 20px' : '20px 20px 20px 6px',
-            background: bubbleColor,
-            color: '#fff',
-            lineHeight: 1.65,
-            boxShadow: '0 14px 30px rgba(0,0,0,0.14)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}
-        >
-          <div style={{ fontSize: 14 }}>{message.content}</div>
-          <div
-            style={{
-              marginTop: 8,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              gap: 6,
-              color: 'rgba(255,255,255,0.62)',
-              fontSize: 10,
-            }}
-          >
-            <span>{message.time}</span>
-            {isUser && <FaCheckDouble size={11} />}
-          </div>
-        </div>
-      </div>
-    )
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{ 
+      minHeight: '100vh', 
+      background: '#0a0a0f', 
+      position: 'relative', 
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
       <Navbar />
 
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'fixed',
-          inset: 0,
-          pointerEvents: 'none',
-          zIndex: 0,
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: isMobile ? '10%' : '12%',
-            right: isMobile ? -110 : -40,
-            width: isMobile ? 280 : 520,
-            height: isMobile ? 280 : 520,
-            borderRadius: '50%',
-            border: '1px solid rgba(201,106,74,0.18)',
-            animation: 'assistantOrbit 24s linear infinite',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: isMobile ? '17%' : '19%',
-            right: isMobile ? -40 : 40,
-            width: isMobile ? 190 : 340,
-            height: isMobile ? 190 : 340,
-            borderRadius: '50%',
-            border: '1px solid rgba(47,92,127,0.20)',
-            animation: 'assistantOrbitReverse 16s linear infinite',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            top: isMobile ? '24%' : '28%',
-            right: isMobile ? 34 : 126,
-            width: isMobile ? 110 : 154,
-            height: isMobile ? 110 : 154,
-            borderRadius: 36,
-            background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontFamily: 'Fraunces, serif',
-            fontWeight: 800,
-            fontSize: isMobile ? 38 : 58,
-            boxShadow: '0 28px 60px rgba(201,106,74,0.30)',
-            animation: 'assistantSpin 16s linear infinite',
-          }}
-        >
+      {/* Fond animé */}
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        pointerEvents: 'none',
+        zIndex: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          position: 'absolute',
+          width: isMobile ? '280px' : '450px',
+          height: isMobile ? '280px' : '450px',
+          borderRadius: '50%',
+          border: '2px solid rgba(201,106,74,0.15)',
+          animation: 'spin 25s linear infinite',
+        }} />
+        <div style={{
+          position: 'absolute',
+          width: isMobile ? '200px' : '320px',
+          height: isMobile ? '200px' : '320px',
+          borderRadius: '50%',
+          border: '2px solid rgba(201,106,74,0.1)',
+          animation: 'spinReverse 20s linear infinite',
+        }} />
+        <div style={{
+          width: isMobile ? '120px' : '200px',
+          height: isMobile ? '120px' : '200px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, rgba(201,106,74,0.15), rgba(169,77,49,0.08))',
+          backdropFilter: 'blur(8px)',
+          border: '2px solid rgba(201,106,74,0.25)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'Fraunces, serif',
+          fontSize: isMobile ? '48px' : '80px',
+          fontWeight: 800,
+          color: 'rgba(201,106,74,0.35)',
+          animation: 'pulse 3s ease-in-out infinite',
+        }}>
           O+
         </div>
       </div>
 
-      <main
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          width: 'min(1180px, calc(100% - 24px))',
-          margin: '0 auto',
-          padding: `34px 0 ${pageBottomPadding}`,
-        }}
-      >
-        <section
-          style={{
-            borderRadius: 32,
-            border: '1px solid rgba(255,255,255,0.08)',
-            background:
-              'linear-gradient(180deg, rgba(10,14,18,0.78), rgba(10,14,18,0.88)), linear-gradient(135deg, rgba(201,106,74,0.06), rgba(47,92,127,0.05))',
-            boxShadow: '0 28px 72px rgba(0,0,0,0.28)',
-            padding: isMobile ? 22 : 32,
-          }}
-        >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '8px 14px',
-              borderRadius: 999,
-              border: '1px solid rgba(201,106,74,0.18)',
-              background: 'rgba(201,106,74,0.08)',
-              color: '#F0B39A',
-              fontSize: 12,
-              fontWeight: 700,
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            <HiOutlineSparkles size={14} />
-            Espace Assistant O+
-          </div>
+      <FloatingItems />
 
-          <div
-            style={{
-              marginTop: 18,
-              display: 'grid',
-              gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.1fr) minmax(260px, 320px)',
-              gap: 22,
-              alignItems: 'start',
-            }}
-          >
-            <div>
-              <h1
-                style={{
-                  margin: 0,
-                  color: '#F7EFE8',
-                  fontFamily: 'Fraunces, serif',
-                  fontSize: isMobile ? 34 : 52,
-                  fontWeight: 800,
-                  lineHeight: 1.04,
-                  letterSpacing: '-0.05em',
-                }}
-              >
-                Une vraie conversation
-                <br />
-                pour ton orientation.
-              </h1>
-
-              <p
-                style={{
-                  margin: '16px 0 0',
-                  maxWidth: 720,
-                  color: '#A7B1C0',
-                  fontSize: 15,
-                  lineHeight: 1.8,
-                }}
-              >
-                Si tu poses une question classique, O+ te repond. Si tu lui envoies une serie et des
-                notes, il essaie d'utiliser directement le simulateur ORIENTA+ au lieu de rester dans
-                une simple discussion.
-              </p>
-
-              <div
-                style={{
-                  display: 'flex',
-                  gap: 10,
-                  flexWrap: 'wrap',
-                  marginTop: 18,
-                }}
-              >
-                {QUICK_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => setInput(prompt)}
-                    style={{
-                      padding: '10px 14px',
-                      borderRadius: 999,
-                      border: '1px solid rgba(255,255,255,0.08)',
-                      background: 'rgba(255,255,255,0.04)',
-                      color: '#E6D9CF',
-                      cursor: 'pointer',
-                      fontSize: 12,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gap: 12,
-              }}
-            >
-              <div
-                style={{
-                  borderRadius: 24,
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  background: 'rgba(255,255,255,0.04)',
-                  padding: 18,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    color: '#F7EFE8',
-                    fontWeight: 700,
-                  }}
-                >
-                  <MdOutlineAutoGraph size={20} color="#F0B39A" />
-                  Simulation intelligente
-                </div>
-                <p style={{ margin: '10px 0 0', color: '#A7B1C0', fontSize: 13, lineHeight: 1.75 }}>
-                  Exemple reconnu automatiquement : Serie C, MATH 15, PHYS 14, SVT 13.
-                </p>
-              </div>
-
-              <div
-                style={{
-                  borderRadius: 24,
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  background: 'rgba(255,255,255,0.04)',
-                  padding: 18,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    color: '#F7EFE8',
-                    fontWeight: 700,
-                  }}
-                >
-                  <MdOutlineTravelExplore size={20} color="#9CC0D7" />
-                  Historique conserve
-                </div>
-                <p style={{ margin: '10px 0 0', color: '#A7B1C0', fontSize: 13, lineHeight: 1.75 }}>
-                  La discussion reste sauvegardee si tu changes de page puis reviens plus tard.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{
-            marginTop: 24,
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '320px minmax(0, 1fr)',
-            gap: 24,
-          }}
-        >
-          <aside
-            style={{
-              display: 'grid',
-              gap: 16,
-              alignSelf: 'start',
-            }}
-          >
-            <div
-              style={{
-                borderRadius: 28,
-                border: '1px solid rgba(255,255,255,0.08)',
-                background: 'linear-gradient(180deg, rgba(9,13,19,0.78), rgba(9,13,19,0.88))',
-                boxShadow: '0 22px 60px rgba(0,0,0,0.20)',
-                padding: 20,
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div style={{ color: '#F7EFE8', fontSize: 18, fontWeight: 700, fontFamily: 'Fraunces, serif' }}>
-                    O+ comprend
-                  </div>
-                  <div style={{ marginTop: 4, color: '#8B9AA8', fontSize: 12 }}>
-                    {seriesLoading ? 'Chargement des series...' : `${series.length} series disponibles`}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={clearConversation}
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 12,
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#B8C3D1',
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                >
-                  Effacer
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: 10, marginTop: 16 }}>
-                {[
-                  {
-                    icon: MdOutlineSchool,
-                    title: 'Questions d orientation',
-                    text: 'Filieres, universites, debouches, bourses, reorientation.',
-                    color: '#F0B39A',
-                  },
-                  {
-                    icon: MdOutlineAutoGraph,
-                    title: 'Serie + notes',
-                    text: "Si le message est exploitable, j'utilise l'algo de suggestion au lieu d'improviser.",
-                    color: '#9CC0D7',
-                  },
-                  {
-                    icon: HiOutlineSparkles,
-                    title: 'Redirection intelligente',
-                    text: "S'il manque des informations, je prepare un brouillon pour le simulateur.",
-                    color: '#EDC98A',
-                  },
-                ].map((item) => {
-                  const Icon = item.icon
-
-                  return (
-                    <div
-                      key={item.title}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '44px minmax(0, 1fr)',
-                        gap: 12,
-                        alignItems: 'start',
-                        padding: 14,
-                        borderRadius: 18,
-                        border: '1px solid rgba(255,255,255,0.07)',
-                        background: 'rgba(255,255,255,0.03)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 14,
-                          background: `${item.color}18`,
-                          color: item.color,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Icon size={19} />
-                      </div>
-                      <div>
-                        <div style={{ color: '#F7EFE8', fontWeight: 700, fontSize: 14 }}>{item.title}</div>
-                        <div style={{ marginTop: 4, color: '#A7B1C0', fontSize: 13, lineHeight: 1.65 }}>
-                          {item.text}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </aside>
-
-          <section
-            style={{
-              borderRadius: 30,
-              border: '1px solid rgba(255,255,255,0.08)',
-              background:
-                'linear-gradient(180deg, rgba(9,13,19,0.78), rgba(9,13,19,0.90)), linear-gradient(135deg, rgba(201,106,74,0.05), rgba(47,92,127,0.04))',
-              boxShadow: '0 24px 70px rgba(0,0,0,0.22)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 16,
-                padding: '18px 20px',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
-                background: 'linear-gradient(135deg, rgba(201,106,74,0.08), rgba(47,92,127,0.05))',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 16,
-                    background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 18px 34px rgba(201,106,74,0.20)',
-                  }}
-                >
-                  <RiRobot2Line size={22} color="#fff" />
-                </div>
-                <div>
-                  <div style={{ color: '#F7EFE8', fontWeight: 700, fontSize: 18, fontFamily: 'Fraunces, serif' }}>
-                    O+ Assistant
-                  </div>
-                  <div style={{ marginTop: 2, color: '#8B9AA8', fontSize: 12 }}>
-                    {loading ? "Analyse en cours..." : 'Pret a repondre ou a simuler'}
-                  </div>
-                </div>
-              </div>
-
-              {!isMobile && (
-                <div
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 999,
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    background: 'rgba(255,255,255,0.04)',
-                    color: '#E6D9CF',
-                    fontSize: 12,
-                    fontWeight: 700,
-                  }}
-                >
-                  Orientation universitaire uniquement
-                </div>
-              )}
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 12,
-                padding: isMobile ? '16px 14px 20px' : '20px 18px 24px',
-                minHeight: isMobile ? '52vh' : '60vh',
-                background:
-                  'radial-gradient(circle at top left, rgba(201,106,74,0.05), transparent 24%), radial-gradient(circle at top right, rgba(47,92,127,0.05), transparent 22%), rgba(10,10,15,0.28)',
-              }}
-            >
-              <div
-                style={{
-                  alignSelf: 'center',
-                  padding: '7px 12px',
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.06)',
-                  color: '#C7D2E0',
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                Historique local actif
-              </div>
-
-              {messages.map((message) => renderMessage(message))}
-
-              {loading && (
-                <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 10 }}>
-                  <div
-                    style={{
-                      width: 34,
-                      height: 34,
-                      borderRadius: 12,
-                      background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <RiRobot2Line size={16} color="#fff" />
-                  </div>
-
-                  <div
-                    style={{
-                      padding: '12px 16px',
-                      borderRadius: '20px 20px 20px 6px',
-                      background: 'rgba(255,255,255,0.08)',
-                      display: 'flex',
-                      gap: 6,
-                    }}
-                  >
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', animation: 'assistantBounce 1.4s infinite' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', animation: 'assistantBounce 1.4s 0.2s infinite' }} />
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', animation: 'assistantBounce 1.4s 0.4s infinite' }} />
-                  </div>
-                </div>
-              )}
-
-              <div ref={bottomRef} />
-            </div>
-          </section>
-        </section>
-      </main>
-
-      <div
+      {/* Bouton toggle sidebar */}
+      <button
+        className="sidebar-toggle"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
         style={{
           position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: composerBottom,
-          zIndex: 1000,
-          padding: '12px 16px',
-          background: 'rgba(10,10,15,0.92)',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          bottom: isMobile ? (inputExpanded ? 120 : 80) : 90,
+          left: 16,
+          zIndex: 100,
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
+          border: 'none',
+          color: '#fff',
+          display: isMobile ? 'flex' : 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          transition: 'bottom 0.3s ease',
         }}
       >
-        <div
-          style={{
-            maxWidth: 1180,
-            margin: '0 auto',
-            display: 'grid',
-            gridTemplateColumns: isMobile ? '1fr' : '320px minmax(0, 1fr)',
-            gap: 24,
-          }}
-        >
-          {!isMobile && <div />}
+        <RiHistoryLine size={22} />
+      </button>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div
-              style={{
-                flex: 1,
-                padding: '10px 12px 8px',
-                borderRadius: 24,
-                border: '1px solid rgba(255,255,255,0.10)',
-                background: 'rgba(255,255,255,0.05)',
-              }}
-            >
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={1}
-                placeholder="Pose une question ou colle une serie avec des notes..."
-                style={{
-                  width: '100%',
-                  minHeight: 28,
-                  maxHeight: 140,
-                  resize: 'none',
-                  background: 'transparent',
-                  border: 'none',
-                  outline: 'none',
-                  color: '#fff',
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                }}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 10,
+      {/* Sidebar */}
+      <div className="sidebar" style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: isMobile ? (sidebarOpen ? '280px' : '0') : '260px',
+        background: 'rgba(10,10,15,0.95)',
+        backdropFilter: 'blur(12px)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+        zIndex: 90,
+        transition: 'width 0.3s ease, transform 0.3s ease',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        paddingTop: '70px',
+      }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 20,
+            }}>💬</div>
+            <div>
+              <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>Historique</div>
+              <div style={{ color: '#8B7669', fontSize: 11 }}>{messages.filter(m => m.role === 'user').length} messages</div>
+            </div>
+          </div>
+          <button onClick={newConversation} style={{
+            width: '100%',
+            padding: '10px',
+            borderRadius: 12,
+            background: 'rgba(201,106,74,0.15)',
+            border: '1px solid rgba(201,106,74,0.3)',
+            color: '#F0B39A',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            fontSize: 13,
+            marginBottom: 8,
+          }}>
+            <BsPlus size={16} /> Nouvelle discussion
+          </button>
+          <button onClick={clearHistory} style={{
+            width: '100%',
+            padding: '10px',
+            borderRadius: 12,
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            color: '#f87171',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            cursor: 'pointer',
+            fontSize: 13,
+          }}>
+            <BsTrash size={14} /> Effacer tout
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Discussions récentes
+          </div>
+          {messages.filter(m => m.role === 'user').slice(-10).reverse().map((msg, idx) => (
+            <div key={idx} style={{
+              padding: '10px 12px',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,0.03)',
+              marginBottom: 8,
+              cursor: 'pointer',
+              fontSize: 12,
+              color: '#cbd5e1',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}>
+              {msg.content.length > 40 ? msg.content.slice(0, 40) + '...' : msg.content}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Contenu principal */}
+      <main style={{
+        marginLeft: isMobile ? 0 : (sidebarOpen ? '260px' : '0'),
+        transition: 'margin-left 0.3s ease',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        paddingBottom: isMobile
+          ? (inputExpanded ? 'calc(250px + env(safe-area-inset-bottom))' : 'calc(180px + env(safe-area-inset-bottom))')
+          : '80px',
+        position: 'relative',
+        zIndex: 1,
+      }}>
+        {/* Header */}
+        <div style={{
+          position: 'sticky',
+          top: 0,
+          background: 'rgba(10,10,15,0.85)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          padding: '12px 20px',
+          zIndex: 10,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: 900, margin: '0 auto' }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: 12,
+              background: 'linear-gradient(135deg, #C96A4A, #A94D31)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <RiRobot2Line size={20} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, color: '#fff' }}>O+ Assistant</div>
+              <div style={{ fontSize: 11, color: '#64748b' }}>{loading ? 'En train d\'écrire...' : 'En ligne'}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div style={{
+          flex: 1,
+          maxWidth: 900,
+          margin: '0 auto',
+          width: '100%',
+          padding: '20px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}>
+          {messages.map((msg) => (
+            <div key={msg.id} style={{
+              display: 'flex',
+              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+            }}>
+              <div style={{
+                maxWidth: isMobile ? '85%' : '70%',
+                padding: '10px 14px',
+                borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                background: msg.role === 'user'
+                  ? 'linear-gradient(135deg, #C96A4A, #A94D31)'
+                  : 'rgba(255,255,255,0.06)',
+                color: '#fff',
+                fontSize: 14,
+                lineHeight: 1.5,
+                backdropFilter: 'blur(10px)',
+              }}>
+                {msg.content}
+                <div style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.5)',
                   marginTop: 6,
-                  color: '#94a3b8',
-                  fontSize: 11,
-                }}
-              >
-                <span>Exemple : Serie D, SVT 15, CHIMIE 13, MATH 12</span>
-                {!isMobile && <span>{seriesLoading ? 'Series en chargement...' : 'Simulation automatique active'}</span>}
+                  textAlign: 'right',
+                }}>
+                  {msg.time}
+                  {msg.role === 'user' && <FaCheckDouble size={10} style={{ marginLeft: 6 }} />}
+                </div>
               </div>
             </div>
+          ))}
 
-            <button
-              type="button"
-              onClick={send}
-              disabled={loading || !input.trim()}
-              style={{
-                width: 52,
-                height: 52,
+          {loading && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 8 }}>
+              <div style={{
+                padding: '12px 16px',
                 borderRadius: 18,
-                border: 'none',
-                background: input.trim()
-                  ? 'linear-gradient(135deg, #C96A4A, #A94D31)'
-                  : 'rgba(255,255,255,0.08)',
+                background: 'rgba(255,255,255,0.06)',
+                backdropFilter: 'blur(10px)',
+                display: 'flex',
+                gap: 4,
+              }}>
+                <span style={{ width: 7, height: 7, background: '#C96A4A', borderRadius: '50%', animation: 'bounce 1.4s infinite' }} />
+                <span style={{ width: 7, height: 7, background: '#C96A4A', borderRadius: '50%', animation: 'bounce 1.4s 0.2s infinite' }} />
+                <span style={{ width: 7, height: 7, background: '#C96A4A', borderRadius: '50%', animation: 'bounce 1.4s 0.4s infinite' }} />
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </main>
+
+      {/* Input pliable/dépliable - STYLE WHATSAPP */}
+      <div style={{
+        position: 'fixed',
+        bottom: isMobile ? 'calc(98px + env(safe-area-inset-bottom))' : 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(10,10,15,0.98)',
+        backdropFilter: 'blur(12px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        zIndex: 1201,
+        transition: 'all 0.3s ease',
+      }}>
+        {/* Bouton pour plier/déplier */}
+        <button
+          onClick={() => setInputExpanded(!inputExpanded)}
+          style={{
+            width: '100%',
+            padding: '8px',
+            background: 'transparent',
+            border: 'none',
+            color: '#8B7669',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            fontSize: 12,
+          }}
+        >
+          {inputExpanded ? (
+            <><BsChevronDown size={14} /> Réduire</>
+          ) : (
+            <><BsChevronUp size={14} /> Déplier pour écrire plus</>
+          )}
+        </button>
+
+        {/* Zone d'écriture */}
+        <div style={{
+          padding: isMobile ? (inputExpanded ? '12px' : '10px 12px') : '12px 16px',
+          transition: 'padding 0.3s ease',
+        }}>
+          <div style={{ 
+            maxWidth: 900, 
+            margin: '0 auto', 
+            display: 'flex', 
+            gap: 12,
+            alignItems: 'flex-end',
+          }}>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Pose ta question..."
+              rows={inputExpanded ? (isMobile ? 4 : 3) : 1}
+              style={{
+                flex: 1,
+                padding: isMobile ? '12px 14px' : '12px 16px',
+                borderRadius: 24,
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.05)',
                 color: '#fff',
+                fontSize: isMobile ? 15 : 14,
+                resize: 'none',
+                outline: 'none',
+                fontFamily: 'inherit',
+                maxHeight: isMobile ? '150px' : '200px',
+                lineHeight: 1.4,
+                transition: 'height 0.2s ease',
+              }}
+              autoFocus
+            />
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || loading}
+              style={{
+                width: isMobile ? 44 : 48,
+                height: isMobile ? 44 : 48,
+                borderRadius: 24,
+                background: input.trim() ? 'linear-gradient(135deg, #C96A4A, #A94D31)' : 'rgba(255,255,255,0.1)',
+                border: 'none',
                 cursor: input.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                color: '#fff',
                 flexShrink: 0,
-                boxShadow: input.trim() ? '0 18px 38px rgba(201,106,74,0.24)' : 'none',
+                transition: 'all 0.2s ease',
               }}
             >
-              <IoSend size={19} />
+              <IoSend size={isMobile ? 18 : 18} />
             </button>
           </div>
+          
+          {/* Petit indicateur de caractères (optionnel) */}
+          {inputExpanded && input.length > 0 && (
+            <div style={{
+              textAlign: 'right',
+              fontSize: 10,
+              color: '#64748b',
+              marginTop: 6,
+              paddingRight: isMobile ? 56 : 60,
+            }}>
+              {input.length} caractères
+            </div>
+          )}
         </div>
       </div>
 
       <style>{`
-        @keyframes assistantBounce {
-          0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
-          30% { transform: translateY(-6px); opacity: 1; }
+        @keyframes bounce {
+          0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+          30% { transform: translateY(-5px); opacity: 1; }
         }
-        @keyframes assistantOrbit {
+        @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-        @keyframes assistantOrbitReverse {
+        @keyframes spinReverse {
           from { transform: rotate(360deg); }
           to { transform: rotate(0deg); }
         }
-        @keyframes assistantSpin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        @media (max-width: 768px) {
+          .sidebar {
+            transform: translateX(${sidebarOpen ? '0' : '-100%'});
+            transition: transform 0.3s ease;
+          }
+          .sidebar {
+            width: 280px !important;
+          }
+          
+          textarea {
+            font-size: 16px !important;
+          }
+        }
+        
+        @supports (-webkit-touch-callout: none) {
+          .assistant-input-container {
+            padding-bottom: env(safe-area-inset-bottom);
+          }
         }
       `}</style>
     </div>
