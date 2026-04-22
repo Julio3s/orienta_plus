@@ -9,7 +9,6 @@ import useMediaQuery from '../hooks/useMediaQuery'
 import Navbar from '../components/Navbar'
 
 const STORAGE_KEY = 'orienta_assistant_history'
-
 function createTimeLabel() {
   return new Intl.DateTimeFormat('fr-FR', {
     hour: '2-digit',
@@ -35,31 +34,34 @@ const FloatingItems = () => {
     { icon: '📝' }, { icon: '📋' },
   ]
 
+  const itemConfigs = useRef(
+    items.map((item) => ({
+      ...item,
+      left: Math.random() * 100,
+      delay: Math.random() * 15,
+      duration: 8 + Math.random() * 12,
+      size: 28 + Math.random() * 24,
+    }))
+  ).current
+
   return (
     <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0, overflow: 'hidden' }}>
-      {items.map((item, i) => {
-        const randomLeft = Math.random() * 100
-        const randomDelay = Math.random() * 15
-        const randomDuration = 8 + Math.random() * 12
-        const randomSize = 28 + Math.random() * 24
-
-        return (
+      {itemConfigs.map((item, index) => (
           <div
-            key={i}
+            key={index}
             style={{
               position: 'absolute',
               bottom: '-50px',
-              left: `${randomLeft}%`,
-              fontSize: `${randomSize}px`,
+              left: `${item.left}%`,
+              fontSize: `${item.size}px`,
               opacity: 0.4,
-              animation: `floatUp ${randomDuration}s linear infinite`,
-              animationDelay: `${randomDelay}s`,
+              animation: `floatUp ${item.duration}s linear infinite`,
+              animationDelay: `${item.delay}s`,
             }}
           >
             {item.icon}
           </div>
-        )
-      })}
+      ))}
       <style>{`
         @keyframes floatUp {
           0% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
@@ -187,7 +189,7 @@ export default function AssistantPage() {
 
   return (
     <div style={{ 
-      minHeight: '100vh', 
+      minHeight: isMobile ? '100dvh' : '100vh',
       background: '#0a0a0f', 
       position: 'relative', 
       overflow: 'hidden',
@@ -586,7 +588,7 @@ export default function AssistantPage() {
                 border: '1px solid rgba(255,255,255,0.1)',
                 background: 'rgba(255,255,255,0.05)',
                 color: '#fff',
-                fontSize: isMobile ? 15 : 14,
+                fontSize: isMobile ? 16 : 14,
                 resize: 'none',
                 outline: 'none',
                 fontFamily: 'inherit',
@@ -594,7 +596,7 @@ export default function AssistantPage() {
                 lineHeight: 1.4,
                 transition: 'height 0.2s ease',
               }}
-              autoFocus
+              autoFocus={!isMobile}
             />
             <button
               onClick={sendMessage}
