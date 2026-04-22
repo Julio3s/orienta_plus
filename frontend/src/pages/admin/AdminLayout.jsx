@@ -1,6 +1,6 @@
 import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { FiGlobe, FiLogOut, FiMenu, FiX } from 'react-icons/fi'
+import { FiDatabase, FiGlobe, FiLogOut, FiMenu, FiX } from 'react-icons/fi'
 import { MdAccountBalance, MdDashboard, MdMenuBook, MdSchool, MdShowChart } from 'react-icons/md'
 import { HiOutlineClipboardList } from 'react-icons/hi'
 import AdminDashboard from './AdminDashboard'
@@ -9,6 +9,7 @@ import GestionMatieres from './GestionMatieres'
 import GestionUniversites from './GestionUniversites'
 import GestionFilieres from './GestionFilieres'
 import GestionSeuils from './GestionSeuils'
+import AdminSqlConsole from './AdminSqlConsole'
 import ThemeToggle from '../../components/ThemeToggle'
 import { useTheme } from '../../theme/ThemeProvider'
 
@@ -19,6 +20,7 @@ const NAV = [
   { to: '/admin/universites', label: 'Universités', icon: MdAccountBalance },
   { to: '/admin/filieres', label: 'Filières', icon: MdSchool },
   { to: '/admin/seuils', label: 'Seuils', icon: MdShowChart },
+  { to: '/admin/sql', label: 'SQL', icon: FiDatabase },
 ]
 
 export default function AdminLayout() {
@@ -224,6 +226,7 @@ export default function AdminLayout() {
             <Route path="universites" element={<GestionUniversites />} />
             <Route path="filieres" element={<GestionFilieres />} />
             <Route path="seuils" element={<GestionSeuils />} />
+            <Route path="sql" element={<AdminSqlConsole />} />
           </Routes>
         </div>
 
@@ -357,6 +360,7 @@ export default function AdminLayout() {
           <Route path="universites" element={<GestionUniversites />} />
           <Route path="filieres" element={<GestionFilieres />} />
           <Route path="seuils" element={<GestionSeuils />} />
+          <Route path="sql" element={<AdminSqlConsole />} />
         </Routes>
       </div>
     </div>

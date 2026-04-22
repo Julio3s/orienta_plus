@@ -1,11 +1,13 @@
 import csv
 import io
 import logging
+import re
+from time import perf_counter
 
-from django.db import transaction
+from django.db import DatabaseError, connection, transaction
 from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
 from .algo import suggerer_filieres
@@ -35,6 +37,25 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _normalize_sql_query(raw_query):
+    query = (raw_query or '').strip()
+    if query.endswith(';'):
+        query = query[:-1].strip()
+
+    if not query:
+        raise ValueError('Requete SQL vide.')
+
+    if ';' in query:
+        raise ValueError('Une seule requete SQL est autorisee a la fois.')
+
+    return query
+
+
+def _get_sql_statement_type(query):
+    match = re.match(r'^\s*([a-zA-Z]+)', query)
+    return match.group(1).lower() if match else ''
 
 
 class SerieBacViewSet(viewsets.ModelViewSet):
@@ -237,6 +258,72 @@ def stats_dashboard(request):
             'villes': list(Universite.objects.values_list('ville', flat=True).distinct()),
         }
     )
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def admin_sql_view(request):
+    try:
+      query = _normalize_sql_query(request.data.get('query'))
+    except ValueError as exc:
+      return Response({'error': str(exc)}, status=400)
+
+    statement_type = _get_sql_statement_type(query)
+    allow_write = bool(request.data.get('allow_write'))
+    write_statements = {'insert', 'update', 'delete'}
+    allowed_statements = write_statements | {'select', 'explain'}
+
+    if statement_type not in allowed_statements:
+      return Response(
+          {
+              'error': 'Seules les requetes SELECT, EXPLAIN, INSERT, UPDATE et DELETE sont autorisees.',
+          },
+          status=400,
+      )
+
+    if statement_type in write_statements and not allow_write:
+      return Response(
+          {
+              'error': "Active l'autorisation d'ecriture pour executer une requete de modification.",
+          },
+          status=400,
+      )
+
+    started_at = perf_counter()
+
+    try:
+      with connection.cursor() as cursor:
+        cursor.execute(query)
+        duration_ms = round((perf_counter() - started_at) * 1000, 2)
+
+        if cursor.description:
+          columns = [column[0] for column in cursor.description]
+          fetched_rows = cursor.fetchmany(201)
+          truncated = len(fetched_rows) > 200
+          rows = [dict(zip(columns, row)) for row in fetched_rows[:200]]
+
+          return Response(
+              {
+                  'statement_type': statement_type,
+                  'execution_ms': duration_ms,
+                  'columns': columns,
+                  'rows': rows,
+                  'row_count': len(rows),
+                  'truncated': truncated,
+              }
+          )
+
+        return Response(
+            {
+                'statement_type': statement_type,
+                'execution_ms': duration_ms,
+                'affected_rows': cursor.rowcount,
+                'message': 'Requete executee avec succes.',
+            }
+        )
+    except DatabaseError as exc:
+      logger.warning('Erreur SQL admin: %s', exc)
+      return Response({'error': str(exc)}, status=400)
 
 
 @api_view(['POST'])

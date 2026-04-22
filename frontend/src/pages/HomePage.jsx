@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import AnimationIntro from '../components/AnimationIntro'
 import { FiBarChart2, FiBookOpen, FiCamera, FiDollarSign, FiTarget } from 'react-icons/fi'
 import { MdAccountBalance } from 'react-icons/md'
 import studentsOutdoor from '../assets/home/students-outdoor.jpg'
@@ -220,7 +221,7 @@ export default function HomePage() {
 
   return (
     <>
-      {!animDone && <QuickIntro onComplete={() => { markIntroSeen(); setAnimDone(true) }} />}
+      {!animDone && <AnimationIntro onComplete={() => { markIntroSeen(); setAnimDone(true) }} />}
 
       {animDone && (
         <div style={{ background: '#05050A', minHeight: '100vh', color: '#fff' }}>
@@ -471,7 +472,29 @@ export default function HomePage() {
                 <Link to="/universites" style={{ color: '#7A8090', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = CORAL} onMouseLeave={e => e.currentTarget.style.color = '#7A8090'}>Universités</Link>
                 <Link to="/filieres" style={{ color: '#7A8090', textDecoration: 'none', fontSize: 14, transition: 'color 0.2s' }} onMouseEnter={e => e.currentTarget.style.color = CORAL} onMouseLeave={e => e.currentTarget.style.color = '#7A8090'}>Filières</Link>
               </div>
-              <div style={{ fontSize: 12, color: '#3A3E4A' }}>© 2026 ORIENTA+ — Aider les bacheliers béninois à choisir leur avenir</div>
+              <div style={{ display: 'grid', gap: 10, justifyItems: 'center' }}>
+                <Link 
+                  to="/admin/login"
+                  style={{
+                    color: 'rgba(122,128,144,0.42)',
+                    textDecoration: 'none',
+                    fontSize: 11,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    opacity: 0.72,
+                    transition: 'color 0.2s ease, opacity 0.2s ease',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'rgba(201,106,74,0.72)'; e.currentTarget.style.opacity = '1' }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(122,128,144,0.42)'; e.currentTarget.style.opacity = '0.72' }}
+                  title="Accès admin"
+                >
+                  Accès interne
+                </Link>
+                <div style={{ fontSize: 12, color: '#3A3E4A' }}
+                
+                >© 2026 ORIENTA+ — Aider les bacheliers béninois à choisir leur avenir</div>
+               
+              </div>
             </div>
           </footer>
         </div>

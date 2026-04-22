@@ -10,6 +10,7 @@ router.register(r'filieres', views.FiliereViewSet)
 router.register(r'seuils', views.UniversiteFiliereViewSet)
 
 urlpatterns = [
+    path('admin/sql/', views.admin_sql_view, name='admin-sql'),
     path('filieres/import-csv/', views.import_filieres_csv_view, name='import-filieres-csv'),
     path('', include(router.urls)),
     path('suggerer/', views.suggerer_view, name='suggerer'),

@@ -99,3 +99,7 @@ export const chatbotAPI = {
 export const statsAPI = {
   dashboard: () => api.get('/stats/'),
 }
+
+export const adminAPI = {
+  executeSql: (payload) => api.post('/admin/sql/', payload),
+}

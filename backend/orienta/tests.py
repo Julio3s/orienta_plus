@@ -107,6 +107,81 @@ class SerieBacAPITests(APITestCase):
         self.assertIn('matieres', response.data)
 
 
+class AdminSqlAPITests(APITestCase):
+    def setUp(self):
+        self.staff_user = get_user_model().objects.create_user(
+            username='staff-admin',
+            password='adminpass123',
+            is_staff=True,
+        )
+        self.regular_user = get_user_model().objects.create_user(
+            username='simple-user',
+            password='userpass123',
+        )
+        self.matiere = Matiere.objects.create(nom='Mathematiques', code='MATH')
+        self.table_name = Matiere._meta.db_table
+
+    def test_admin_sql_select_query_returns_rows(self):
+        self.client.force_authenticate(user=self.staff_user)
+
+        response = self.client.post(
+            '/api/admin/sql/',
+            {
+                'query': f"SELECT id, nom, code FROM {self.table_name} WHERE id = {self.matiere.id}",
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['statement_type'], 'select')
+        self.assertEqual(response.data['row_count'], 1)
+        self.assertEqual(response.data['rows'][0]['code'], 'MATH')
+
+    def test_admin_sql_blocks_write_without_explicit_confirmation(self):
+        self.client.force_authenticate(user=self.staff_user)
+
+        response = self.client.post(
+            '/api/admin/sql/',
+            {
+                'query': f"UPDATE {self.table_name} SET nom = 'Maths avancees' WHERE id = {self.matiere.id}",
+                'allow_write': False,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.matiere.refresh_from_db()
+        self.assertEqual(self.matiere.nom, 'Mathematiques')
+
+    def test_admin_sql_allows_write_when_confirmed(self):
+        self.client.force_authenticate(user=self.staff_user)
+
+        response = self.client.post(
+            '/api/admin/sql/',
+            {
+                'query': f"UPDATE {self.table_name} SET nom = 'Maths avancees' WHERE id = {self.matiere.id}",
+                'allow_write': True,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['statement_type'], 'update')
+        self.matiere.refresh_from_db()
+        self.assertEqual(self.matiere.nom, 'Maths avancees')
+
+    def test_admin_sql_requires_staff_user(self):
+        self.client.force_authenticate(user=self.regular_user)
+
+        response = self.client.post(
+            '/api/admin/sql/',
+            {'query': 'SELECT 1 AS value'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
 @override_settings(
     EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
     DEFAULT_FROM_EMAIL='no-reply@orienta.plus',

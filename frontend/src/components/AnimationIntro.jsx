@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-const TOTAL_DURATION_MS = 4600
+const TOTAL_DURATION_MS = 10000
 const EXIT_DURATION_MS = 450
 
 const INTRO_LINES = [
@@ -126,9 +126,6 @@ export default function AnimationIntro({ onComplete }) {
                 ))}
               </div>
 
-              <p className="intro-subtitle">
-                Une entree plus nette, plus calme, et beaucoup plus elegante.
-              </p>
             </div>
           </div>
         </div>
