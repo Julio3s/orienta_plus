@@ -1,0 +1,69 @@
+services:
+  # Backend Django sur Render
+  - type: web
+    name: orienta-backend
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install --no-cache-dir -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate
+    startCommand: gunicorn orienta_backend.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: orienta-backend.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: orienta-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://orienta-frontend.onrender.com
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_API_BASE
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL
+        value: llama-3.1-8b-instant
+      - key: GROQ_MAX_TOKENS
+        value: "800"
+      - key: GROQ_TEMPERATURE
+        value: "0.7"
+      - key: GROQ_REQUEST_TIMEOUT
+        value: "30"
+      - key: GROQ_USE_RESPONSES_API
+        value: False
+      - key: GROQ_STORE_CONVERSATIONS
+        value: False
+
+  # Frontend React/Vite sur Render (Static Site)
+  - type: web
+    name: orienta-frontend
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://orienta-backend.onrender.com/api
+
+databases:
+  - name: orienta-db
+    plan: free
+    databaseName: orienta
+    user: orienta
