@@ -189,3 +189,5 @@ LOGGING = {
 LOGS_DIR = BASE_DIR / 'logs'
 if not LOGS_DIR.exists():
     LOGS_DIR.mkdir(parents=True)
+
+DATA_INJECTION_SECRET = os.environ.get('DATA_INJECTION_SECRET', '')

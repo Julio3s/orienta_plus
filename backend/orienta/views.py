@@ -327,6 +327,53 @@ def admin_sql_view(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def inject_local_data(request):
+    """
+    Injecte les données locales stockées en dur dans le code
+    (utilisé pour peupler la base Render automatiquement)
+    """
+    from django.conf import settings
+    secret = getattr(settings, 'DATA_INJECTION_SECRET', '')
+    provided = request.data.get('secret') or request.headers.get('X-Injection-Secret', '')
+    if not secret or provided != secret:
+        return Response({'error': 'Unauthorized'}, status=401)
+
+    from orienta.models import SerieBac, Matiere, Universite, Filiere
+    from django.db import transaction
+
+    series = [
+        ('S', 'Scientifique'),
+        ('D', 'Sciences Exactes'),
+        ('E', 'Sciences Économiques'),
+        ('F', 'Sciences de la Santé'),
+        ('G', 'Sciences Sociales'),
+    ]
+    matieres = [
+        ('MATH', 'Mathématiques'),
+        ('PHYS', 'Physique'),
+        ('CHIM', 'Chimie'),
+        ('BIOL', 'Biologie'),
+        ('HIST', 'Histoire'),
+        ('GEO', 'Géographie'),
+        ('ECO', 'Économie'),
+        ('PHIL', 'Philosophie'),
+        ('ANG', 'Anglais'),
+        ('FR', 'Français'),
+    ]
+
+    try:
+        with transaction.atomic():
+            for code, nom in series:
+                SerieBac.objects.get_or_create(code=code, defaults={'nom': nom})
+            for code, nom in matieres:
+                Matiere.objects.get_or_create(code=code, defaults={'nom': nom})
+        return Response({'message': 'Données injectées avec succès.'})
+    except Exception as exc:
+        return Response({'error': str(exc)}, status=500)
+
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def import_filieres_csv_view(request):
     """
